@@ -76,7 +76,7 @@ const PedidoDoacaoCard = ({ item, onAceitar, onRecusar }) => (
   </View>
 );
 
-export default function AdmScreen() {
+export default function Adm() {
   const [cestas, setCestas] = useState(pedidosCestas);
   const [doacoes, setDoacoes] = useState(pedidosDoacoes);
 
