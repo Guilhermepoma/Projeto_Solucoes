@@ -61,7 +61,13 @@ export default function Perfil() {
 
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[styles.smallButton, { backgroundColor: theme.buttonSoft }]}
+              style={[
+                styles.smallButton,
+                {
+                  backgroundColor: theme.buttonSoft,
+                  borderColor: modoNoturno ? theme.border : "#111827",
+                },
+              ]}
               onPress={editandoEmail ? salvarEmail : () => setEditandoEmail(true)}
             >
               <Text style={[styles.smallButtonText, { color: theme.buttonText }]}>
@@ -75,7 +81,11 @@ export default function Perfil() {
               styles.input,
               {
                 backgroundColor: theme.input,
-                borderColor: editandoEmail ? theme.primary : theme.border,
+                borderColor: modoNoturno
+                  ? editandoEmail
+                    ? theme.primary
+                    : theme.border
+                  : "#111827",
                 color: theme.title,
               },
             ]}
@@ -106,8 +116,8 @@ export default function Perfil() {
           <Switch
             value={modoNoturno}
             onValueChange={setModoNoturno}
-            trackColor={{ false: "#CBD5E1", true: "#93C5FD" }}
-            thumbColor={modoNoturno ? theme.primary : "#F8FAFC"}
+            trackColor={{ false: "#9CA3AF", true: "#93C5FD" }}
+            thumbColor={modoNoturno ? "#FFFFFF" : "#111827"}
           />
         </View>
       </View>
@@ -199,6 +209,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 12,
+    borderWidth: 1,
   },
 
   smallButtonText: {
