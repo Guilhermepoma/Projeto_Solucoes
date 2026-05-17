@@ -1,28 +1,32 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import Login from "./screen/login";
 import Home from "./screen/home";
-import FazerDoacao from "./screen/Fazer_doacao";
-import PedirDoacao from "./screen/PedirDoacao";
+import FazerDoacao from "./screen/Fazerdoacao";
+import PedirDoacao from "./screen/Pedirdoacao";
 import Adm from "./screen/adm";
 
 import { DoacoesProvider } from "./DoacoesContext";
 
-const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
       <DoacoesProvider>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="FazerDoacao" component={FazerDoacao} />
-          <Stack.Screen name="PedirDoacao" component={PedirDoacao} />
-          <Stack.Screen name="Adm" component={Adm} />
-        </Stack.Navigator>
+        <Drawer.Navigator initialRouteName="Login">
+          <Drawer.Screen 
+            name="Login" 
+            component={Login} 
+            options={{ headerShown: false, drawerItemStyle: { display: 'none' } }} 
+          />
+          <Drawer.Screen name="Home" component={Home} options={{ title: 'Início' }} />
+          <Drawer.Screen name="FazerDoacao" component={FazerDoacao} options={{ title: 'Fazer Doação' }} />
+          <Drawer.Screen name="PedirDoacao" component={PedirDoacao} options={{ title: 'Pedir Doação' }} />
+          <Drawer.Screen name="Adm" component={Adm} options={{ title: 'Área ADM' }} />
+        </Drawer.Navigator>
       </DoacoesProvider>
     </NavigationContainer>
   );
