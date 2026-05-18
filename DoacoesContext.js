@@ -1,25 +1,35 @@
-import React, { createContext, useState } from 'react';
+// DoacoesContext.js
+// Coloque na raiz do projeto (mesmo nível do App.js)
+
+import React, { createContext, useState } from "react";
 
 export const DoacoesContext = createContext();
 
-export const DoacoesProvider = ({ children }) => {
+export function DoacoesProvider({ children }) {
   const [doacoes, setDoacoes] = useState([]);
 
-  const adicionarDoacao = (doacao) => {
-    setDoacoes((prev) => [
-      ...prev,
-      {
-        ...doacao,
-        status: "pendente_aprovacao_doacao",
-        id: Date.now(),
-      },
-    ]);
+  const adicionarDoacao = (dados) => {
+    const nova = {
+      ...dados,
+      id: Date.now().toString(),
+      status: "pendente_aprovacao_doacao",
+      criadoEm: new Date().toISOString(),
+    };
+    setDoacoes((prev) => [nova, ...prev]);
   };
 
-  const atualizarStatus = (id, novoStatus) => {
+  // motivo é opcional — só salvo quando status === "recusado"
+  const atualizarStatus = (id, novoStatus, motivo = null) => {
     setDoacoes((prev) =>
       prev.map((d) =>
-        d.id === id ? { ...d, status: novoStatus } : d
+        d.id === id
+          ? {
+              ...d,
+              status: novoStatus,
+              motivoRecusa: novoStatus === "recusado" ? motivo : null,
+              atualizadoEm: new Date().toISOString(),
+            }
+          : d
       )
     );
   };
@@ -29,4 +39,4 @@ export const DoacoesProvider = ({ children }) => {
       {children}
     </DoacoesContext.Provider>
   );
-};
+}
