@@ -9,22 +9,38 @@ import {
   SafeAreaView,
 } from "react-native";
 import { TemaContext } from "../TemaContext";
+import firebase from '../firebaseConfig';
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const { modoNoturno, theme } = useContext(TemaContext);
 
-  const fazerLogin = () => {
-    console.log("email:", email);
-    console.log("senha:", senha);
-
+  const fazerLogin = async () => {
     if (!email || !senha) {
       Alert.alert("Erro", "Preencha todos os campos");
       return;
     }
-
-    navigation.navigate("Home");
+    try {
+      const userCredential = await firebase.auth().signInWithEmailAndPassword(email, senha);
+      // Garante que o registro do usuário exista no Firestore
+      await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
+        email: userCredential.user.email,
+        criadoEm: new Date().toISOString(),
+        isAdmin: email === 'admin@gmail.com',
+      }, { merge: true });
+      navigation.navigate("Home");
+    } catch (error) {
+      let mensagem = "Erro ao fazer login.";
+      if (error.code === 'auth/user-not-found') {
+        mensagem = "Usuário não encontrado.";
+      } else if (error.code === 'auth/wrong-password') {
+        mensagem = "Senha incorreta.";
+      } else if (error.code === 'auth/invalid-email') {
+        mensagem = "Email inválido.";
+      }
+      Alert.alert("Erro", mensagem);
+    }
   };
 
   return (
@@ -55,7 +71,30 @@ export default function Login({ navigation }) {
           <Text style={styles.textoBotao}>Entrar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={async () => {
+          if (!email || !senha) {
+            Alert.alert("Erro", "Preencha todos os campos para criar a conta");
+            return;
+          }
+          try {
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, senha);
+            // Salva dados do usuário no Firestore
+            await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
+              email: userCredential.user.email,
+              criadoEm: new Date().toISOString(),
+              isAdmin: email === 'admin@gmail.com',
+            });
+            Alert.alert("Sucesso", "Conta criada com sucesso! Você já pode entrar.");
+          } catch (error) {
+            let mensagem = "Erro ao criar conta.";
+            if (error.code === 'auth/email-already-in-use') {
+              mensagem = "Email inválido.";
+            } else if (error.code === 'auth/weak-password') {
+              mensagem = "A senha deve ter pelo menos 6 caracteres.";
+            }
+            Alert.alert("Erro", mensagem);
+          }
+        }}>
           <Text style={[styles.link, { color: theme.primary }]}>Criar conta</Text>
         </TouchableOpacity>
       </View>

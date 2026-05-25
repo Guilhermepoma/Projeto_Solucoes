@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,20 +10,39 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TemaContext } from "../TemaContext";
+import { AuthContext } from '../AuthContext';
+import firebase from '../firebaseConfig';
 
 export default function Perfil() {
-  const [email, setEmail] = useState("usuario@email.com");
+  const { user } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
   const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
 
-  const salvarEmail = () => {
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  const salvarEmail = async () => {
     if (!email.trim()) {
       Alert.alert("Erro", "Digite um e-mail válido");
       return;
     }
-
-    setEditandoEmail(false);
-    Alert.alert("Pronto", "E-mail atualizado com sucesso");
+    try {
+      // Atualiza no Auth
+      await user.updateEmail(email);
+      // Atualiza no Firestore
+      await firebase.firestore().collection('usuarios').doc(user.uid).set({
+        email,
+        atualizadoEm: new Date().toISOString(),
+      }, { merge: true });
+      setEditandoEmail(false);
+      Alert.alert("Pronto", "E-mail atualizado com sucesso");
+    } catch (error) {
+      Alert.alert("Erro", error.message || "Não foi possível atualizar o e-mail.");
+    }
   };
 
   return (

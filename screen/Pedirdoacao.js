@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { DoacoesContext } from "../DoacoesContext";
+import firebase from '../firebaseConfig';
 import { TemaContext } from "../TemaContext";
 
 export default function PedirDoacao({ navigation }) {
@@ -15,8 +16,18 @@ export default function PedirDoacao({ navigation }) {
 
   const disponiveis = doacoes.filter((d) => d.status === "disponivel");
 
-  const solicitar = (id) => {
+  const solicitar = async (id) => {
     atualizarStatus(id, "pendente_aprovacao_pedido");
+    try {
+      await firebase.firestore().collection('pedidos').add({
+        doacaoId: id,
+        solicitadoEm: new Date().toISOString(),
+        status: 'pendente_aprovacao_pedido',
+        // Adicione aqui o UID do usuário se desejar
+      });
+    } catch (error) {
+      console.error('Erro ao salvar pedido no Firestore:', error);
+    }
   };
 
   return (

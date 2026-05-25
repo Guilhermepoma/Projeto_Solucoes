@@ -12,11 +12,13 @@ import Perfil from "./screen/Perfil";
 
 import { DoacoesProvider } from "./DoacoesContext";
 import { TemaContext, TemaProvider } from "./TemaContext";
+import { AuthProvider, AuthContext } from "./AuthContext";
 
 const Drawer = createDrawerNavigator();
 
 function Rotas() {
   const { modoNoturno, theme } = useContext(TemaContext);
+  const { isAdmin, loading } = React.useContext(AuthContext);
 
   const navigationTheme = {
     ...(modoNoturno ? DarkTheme : DefaultTheme),
@@ -31,6 +33,8 @@ function Rotas() {
       notification: theme.admin,
     },
   };
+
+  if (loading) return null;
 
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -77,7 +81,9 @@ function Rotas() {
             component={Perfil}
             options={{ title: "Perfil", drawerItemStyle: { display: "none" } }}
           />
-          <Drawer.Screen name="Adm" component={Adm} options={{ title: "Área ADM" }} />
+          {isAdmin && (
+            <Drawer.Screen name="Adm" component={Adm} options={{ title: "Área ADM" }} />
+          )}
         </Drawer.Navigator>
       </DoacoesProvider>
     </NavigationContainer>
@@ -87,7 +93,9 @@ function Rotas() {
 export default function App() {
   return (
     <TemaProvider>
-      <Rotas />
+      <AuthProvider>
+        <Rotas />
+      </AuthProvider>
     </TemaProvider>
   );
 }
