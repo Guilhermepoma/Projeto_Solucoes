@@ -7,7 +7,10 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Linking,
+  Platform,
 } from "react-native";
+import * as Location from "expo-location";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
@@ -57,6 +60,35 @@ export default function FazerDoacao({ navigation }) {
 
     Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
     navigation.navigate("Home");
+  };
+
+  const abrirMapa = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão negada", "Permita o acesso à localização para usar o mapa");
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+
+      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (geocode.length > 0) {
+        const addr = geocode[0];
+        const parts = [addr.street, addr.district, addr.city, addr.region, addr.country].filter(Boolean);
+        setEndereco(parts.join(", "));
+      }
+
+      const url = Platform.select({
+        ios: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+        android: `geo:${latitude},${longitude}?q=${latitude},${longitude}`,
+        default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+      });
+      await Linking.openURL(url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o mapa");
+    }
   };
 
   const renderChip = (label, selected, onPress) => (
@@ -159,6 +191,15 @@ export default function FazerDoacao({ navigation }) {
           value={endereco}
           onChangeText={setEndereco}
         />
+        {entrega === "Precisa retirar" && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.mapButton, { backgroundColor: theme.primary }]}
+            onPress={abrirMapa}
+          >
+            <Text style={styles.mapButtonText}>Selecionar no mapa</Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={[styles.label, { color: theme.text }]}>Observações</Text>
         <TextInput
@@ -278,6 +319,19 @@ const styles = StyleSheet.create({
   botaoTexto: {
     color: "#FFFFFF",
     fontSize: 16,
+    fontWeight: "800",
+  },
+
+  mapButton: {
+    padding: 14,
+    alignItems: "center",
+    borderRadius: 12,
+    marginBottom: 14,
+  },
+
+  mapButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
     fontWeight: "800",
   },
 });
