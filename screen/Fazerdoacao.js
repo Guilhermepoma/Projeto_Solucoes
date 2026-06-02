@@ -10,11 +10,12 @@ import {
   Linking,
   Platform,
 } from "react-native";
-import * as Location from "expo-location";
+import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
 const categorias = ["Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
+const entregas = ["Entrego pessoalmente", "Retirada no local"];
 const entregas = ["Posso entregar", "Precisa retirar"];
 const postos = [
   { nome: "Posto Central", endereco: "Rua Afonso Pena, 150 - Centro, São Paulo - SP" },
@@ -35,6 +36,8 @@ export default function FazerDoacao({ navigation }) {
   const [postoSelecionado, setPostoSelecionado] = useState(null);
   const [endereco, setEndereco] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const inputStyle = {
     backgroundColor: theme.input,
@@ -48,6 +51,7 @@ export default function FazerDoacao({ navigation }) {
       return;
     }
 
+    if (entrega === "Retirada no local" && !endereco.trim()) {
     if (entrega === "Posso entregar" && !postoSelecionado) {
       Alert.alert("Erro", "Selecione um posto de entrega");
       return;
@@ -67,6 +71,7 @@ export default function FazerDoacao({ navigation }) {
       entrega,
       endereco: entrega === "Posso entregar" ? postoSelecionado.endereco : endereco,
       observacoes,
+      dataEntrega: dataEntrega || null,
     });
 
     Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
@@ -186,12 +191,55 @@ export default function FazerDoacao({ navigation }) {
 
         <Text style={[styles.sectionTitle, { color: theme.title }]}>Entrega</Text>
 
+        <Text style={[styles.label, { color: theme.text }]}>Data de entrega</Text>
+        {dataEntrega ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+            onPress={() => setShowCalendar(!showCalendar)}
+          >
+            <Text style={[styles.dateButtonText, { color: theme.title }]}>{dataEntrega}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+            onPress={() => setShowCalendar(true)}
+          >
+            <Text style={{ color: theme.muted }}>Selecionar data</Text>
+          </TouchableOpacity>
+        )}
+
+        {showCalendar && (
+          <View style={styles.calendarWrap}>
+            <Calendar
+              theme={{
+                backgroundColor: theme.card,
+                calendarBackground: theme.card,
+                dayTextColor: theme.title,
+                monthTextColor: theme.title,
+                arrowColor: theme.primary,
+                todayTextColor: theme.primary,
+                selectedDayBackgroundColor: theme.primary,
+                selectedDayTextColor: "#FFFFFF",
+                textSectionTitleColor: theme.muted,
+              }}
+              onDayPress={(day) => {
+                setDataEntrega(day.dateString);
+                setShowCalendar(false);
+              }}
+              markedDates={dataEntrega ? { [dataEntrega]: { selected: true, selectedColor: theme.primary } } : {}}
+            />
+          </View>
+        )}
+
         <View style={styles.chipGroup}>
           {entregas.map((opcao) =>
             renderChip(opcao, entrega === opcao, () => setEntrega(opcao))
           )}
         </View>
 
+        {entrega === "Retirada no local" && (
         {entrega === "Posso entregar" ? (
           <>
             <Text style={[styles.label, { color: theme.text }]}>Posto de entrega *</Text>
@@ -348,6 +396,25 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: "800",
+  },
+
+  dateButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    marginBottom: 14,
+  },
+
+  dateButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  calendarWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 14,
   },
 
   botao: {
