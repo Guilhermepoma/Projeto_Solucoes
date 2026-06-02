@@ -11,11 +11,11 @@ import {
   Platform,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
+import * as Location from "expo-location";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
 const categorias = ["Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
-const entregas = ["Entrego pessoalmente", "Retirada no local"];
 const entregas = ["Posso entregar", "Precisa retirar"];
 const postos = [
   { nome: "Posto Central", endereco: "Rua Afonso Pena, 150 - Centro, São Paulo - SP" },
@@ -51,7 +51,6 @@ export default function FazerDoacao({ navigation }) {
       return;
     }
 
-    if (entrega === "Retirada no local" && !endereco.trim()) {
     if (entrega === "Posso entregar" && !postoSelecionado) {
       Alert.alert("Erro", "Selecione um posto de entrega");
       return;
@@ -239,7 +238,6 @@ export default function FazerDoacao({ navigation }) {
           )}
         </View>
 
-        {entrega === "Retirada no local" && (
         {entrega === "Posso entregar" ? (
           <>
             <Text style={[styles.label, { color: theme.text }]}>Posto de entrega *</Text>
