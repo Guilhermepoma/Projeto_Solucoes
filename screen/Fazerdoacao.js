@@ -8,11 +8,12 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
+import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
 const categorias = ["Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
-const entregas = ["Posso entregar", "Precisa retirar"];
+const entregas = ["Entrego pessoalmente", "Retirada no local"];
 
 export default function FazerDoacao({ navigation }) {
   const { adicionarDoacao } = useContext(DoacoesContext);
@@ -26,6 +27,8 @@ export default function FazerDoacao({ navigation }) {
   const [entrega, setEntrega] = useState(entregas[0]);
   const [endereco, setEndereco] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const inputStyle = {
     backgroundColor: theme.input,
@@ -39,7 +42,7 @@ export default function FazerDoacao({ navigation }) {
       return;
     }
 
-    if (entrega === "Precisa retirar" && !endereco.trim()) {
+    if (entrega === "Retirada no local" && !endereco.trim()) {
       Alert.alert("Erro", "Informe o endereço ou ponto de retirada");
       return;
     }
@@ -53,6 +56,7 @@ export default function FazerDoacao({ navigation }) {
       entrega,
       endereco,
       observacoes,
+      dataEntrega: dataEntrega || null,
     });
 
     Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
@@ -143,22 +147,66 @@ export default function FazerDoacao({ navigation }) {
 
         <Text style={[styles.sectionTitle, { color: theme.title }]}>Entrega</Text>
 
+        <Text style={[styles.label, { color: theme.text }]}>Data de entrega</Text>
+        {dataEntrega ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+            onPress={() => setShowCalendar(!showCalendar)}
+          >
+            <Text style={[styles.dateButtonText, { color: theme.title }]}>{dataEntrega}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+            onPress={() => setShowCalendar(true)}
+          >
+            <Text style={{ color: theme.muted }}>Selecionar data</Text>
+          </TouchableOpacity>
+        )}
+
+        {showCalendar && (
+          <View style={styles.calendarWrap}>
+            <Calendar
+              theme={{
+                backgroundColor: theme.card,
+                calendarBackground: theme.card,
+                dayTextColor: theme.title,
+                monthTextColor: theme.title,
+                arrowColor: theme.primary,
+                todayTextColor: theme.primary,
+                selectedDayBackgroundColor: theme.primary,
+                selectedDayTextColor: "#FFFFFF",
+                textSectionTitleColor: theme.muted,
+              }}
+              onDayPress={(day) => {
+                setDataEntrega(day.dateString);
+                setShowCalendar(false);
+              }}
+              markedDates={dataEntrega ? { [dataEntrega]: { selected: true, selectedColor: theme.primary } } : {}}
+            />
+          </View>
+        )}
+
         <View style={styles.chipGroup}>
           {entregas.map((opcao) =>
             renderChip(opcao, entrega === opcao, () => setEntrega(opcao))
           )}
         </View>
 
-        <Text style={[styles.label, { color: theme.text }]}>
-          {entrega === "Precisa retirar" ? "Endereço para retirada *" : "Local de referência"}
-        </Text>
-        <TextInput
-          style={[styles.input, inputStyle]}
-          placeholder="Bairro, rua ou ponto de referência"
-          placeholderTextColor={theme.muted}
-          value={endereco}
-          onChangeText={setEndereco}
-        />
+        {entrega === "Retirada no local" && (
+          <>
+            <Text style={[styles.label, { color: theme.text }]}>Endereço para retirada *</Text>
+            <TextInput
+              style={[styles.input, inputStyle]}
+              placeholder="Bairro, rua ou ponto de referência"
+              placeholderTextColor={theme.muted}
+              value={endereco}
+              onChangeText={setEndereco}
+            />
+          </>
+        )}
 
         <Text style={[styles.label, { color: theme.text }]}>Observações</Text>
         <TextInput
@@ -266,6 +314,25 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: "800",
+  },
+
+  dateButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    marginBottom: 14,
+  },
+
+  dateButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  calendarWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 14,
   },
 
   botao: {
