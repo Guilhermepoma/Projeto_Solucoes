@@ -1,13 +1,5 @@
 import React, { useContext, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  SafeAreaView,
-} from "react-native";
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, SafeAreaView,} from "react-native";
 import { TemaContext } from "../TemaContext";
 import firebase from '../firebaseConfig';
 
@@ -23,7 +15,7 @@ export default function Login({ navigation }) {
     }
     try {
       const userCredential = await firebase.auth().signInWithEmailAndPassword(email, senha);
-      // Garante que o registro do usuário exista no Firestore
+      
       await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
         email: userCredential.user.email,
         criadoEm: new Date().toISOString(),
