@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Linking,
+  Platform,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
@@ -14,6 +16,12 @@ import { TemaContext } from "../TemaContext";
 
 const categorias = ["Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
 const entregas = ["Entrego pessoalmente", "Retirada no local"];
+const entregas = ["Posso entregar", "Precisa retirar"];
+const postos = [
+  { nome: "Posto Central", endereco: "Rua Afonso Pena, 150 - Centro, São Paulo - SP" },
+  { nome: "Posto Zona Sul", endereco: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP" },
+  { nome: "Posto Zona Norte", endereco: "Rua Augusta, 500 - Consolação, São Paulo - SP" },
+];
 
 export default function FazerDoacao({ navigation }) {
   const { adicionarDoacao } = useContext(DoacoesContext);
@@ -25,6 +33,7 @@ export default function FazerDoacao({ navigation }) {
   const [quantidade, setQuantidade] = useState("");
   const [categoria, setCategoria] = useState(categorias[0]);
   const [entrega, setEntrega] = useState(entregas[0]);
+  const [postoSelecionado, setPostoSelecionado] = useState(null);
   const [endereco, setEndereco] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [dataEntrega, setDataEntrega] = useState("");
@@ -43,6 +52,12 @@ export default function FazerDoacao({ navigation }) {
     }
 
     if (entrega === "Retirada no local" && !endereco.trim()) {
+    if (entrega === "Posso entregar" && !postoSelecionado) {
+      Alert.alert("Erro", "Selecione um posto de entrega");
+      return;
+    }
+
+    if (entrega === "Precisa retirar" && !endereco.trim()) {
       Alert.alert("Erro", "Informe o endereço ou ponto de retirada");
       return;
     }
@@ -54,13 +69,42 @@ export default function FazerDoacao({ navigation }) {
       quantidade,
       categoria,
       entrega,
-      endereco,
+      endereco: entrega === "Posso entregar" ? postoSelecionado.endereco : endereco,
       observacoes,
       dataEntrega: dataEntrega || null,
     });
 
     Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
     navigation.navigate("Home");
+  };
+
+  const abrirMapa = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão negada", "Permita o acesso à localização para usar o mapa");
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+
+      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (geocode.length > 0) {
+        const addr = geocode[0];
+        const parts = [addr.street, addr.district, addr.city, addr.region, addr.country].filter(Boolean);
+        setEndereco(parts.join(", "));
+      }
+
+      const url = Platform.select({
+        ios: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+        android: `geo:${latitude},${longitude}?q=${latitude},${longitude}`,
+        default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+      });
+      await Linking.openURL(url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o mapa");
+    }
   };
 
   const renderChip = (label, selected, onPress) => (
@@ -196,6 +240,37 @@ export default function FazerDoacao({ navigation }) {
         </View>
 
         {entrega === "Retirada no local" && (
+        {entrega === "Posso entregar" ? (
+          <>
+            <Text style={[styles.label, { color: theme.text }]}>Posto de entrega *</Text>
+            <View style={styles.postoGroup}>
+              {postos.map((posto) => {
+                const selected = postoSelecionado?.nome === posto.nome;
+                return (
+                  <TouchableOpacity
+                    key={posto.nome}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.postoCard,
+                      {
+                        backgroundColor: selected ? theme.primary : theme.cardAlt,
+                        borderColor: selected ? theme.primary : modoNoturno ? theme.border : "#111827",
+                      },
+                    ]}
+                    onPress={() => setPostoSelecionado(posto)}
+                  >
+                    <Text style={[styles.postoNome, { color: selected ? "#FFFFFF" : theme.title }]}>
+                      {posto.nome}
+                    </Text>
+                    <Text style={[styles.postoEndereco, { color: selected ? "#FFFFFF" : theme.muted }]}>
+                      {posto.endereco}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        ) : (
           <>
             <Text style={[styles.label, { color: theme.text }]}>Endereço para retirada *</Text>
             <TextInput
@@ -205,6 +280,13 @@ export default function FazerDoacao({ navigation }) {
               value={endereco}
               onChangeText={setEndereco}
             />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.mapButton, { backgroundColor: theme.primary }]}
+              onPress={abrirMapa}
+            >
+              <Text style={styles.mapButtonText}>Selecionar no mapa</Text>
+            </TouchableOpacity>
           </>
         )}
 
@@ -346,5 +428,40 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
+  },
+
+  mapButton: {
+    padding: 14,
+    alignItems: "center",
+    borderRadius: 12,
+    marginBottom: 14,
+  },
+
+  mapButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  postoGroup: {
+    marginBottom: 14,
+  },
+
+  postoCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  postoNome: {
+    fontSize: 15,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+
+  postoEndereco: {
+    fontSize: 13,
+    lineHeight: 18,
   },
 });
