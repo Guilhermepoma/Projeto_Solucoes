@@ -1,9 +1,5 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+import { View, Text, StyleSheet, TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TemaContext } from "../TemaContext";

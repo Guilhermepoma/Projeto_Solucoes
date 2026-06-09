@@ -1,15 +1,5 @@
 import React, { useContext, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Linking,
-  Platform,
-} from "react-native";
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking, Platform,} from "react-native";
 import * as Location from "expo-location";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";

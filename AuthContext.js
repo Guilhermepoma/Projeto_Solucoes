@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
     const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
       setUser(user);
       if (user) {
-        // Busca o campo isAdmin no Firestore
+    
         const doc = await firebase.firestore().collection('usuarios').doc(user.uid).get();
         setIsAdmin(doc.exists && doc.data().isAdmin === true);
       } else {

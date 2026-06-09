@@ -1,10 +1,5 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView,
 } from "react-native";
 import { DoacoesContext } from "../DoacoesContext";
 import firebase from '../firebaseConfig';
@@ -23,7 +18,7 @@ export default function PedirDoacao({ navigation }) {
         doacaoId: id,
         solicitadoEm: new Date().toISOString(),
         status: 'pendente_aprovacao_pedido',
-        // Adicione aqui o UID do usuário se desejar
+       
       });
     } catch (error) {
       console.error('Erro ao salvar pedido no Firestore:', error);

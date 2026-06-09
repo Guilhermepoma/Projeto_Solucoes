@@ -1,13 +1,24 @@
-// DoacoesContext.js
-// Coloque na raiz do projeto (mesmo nível do App.js)
-
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import firebase from './firebaseConfig';
 
 export const DoacoesContext = createContext();
 
 export function DoacoesProvider({ children }) {
   const [doacoes, setDoacoes] = useState([]);
+
+  useEffect(() => {
+    const carregarDoacoes = async () => {
+      try {
+        const snapshot = await firebase.firestore().collection('doacoes').get();
+        const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        lista.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+        setDoacoes(lista);
+      } catch (error) {
+        console.error('Erro ao carregar doações:', error);
+      }
+    };
+    carregarDoacoes();
+  }, []);
 
   const adicionarDoacao = async (dados) => {
     const nova = {
@@ -24,7 +35,7 @@ export function DoacoesProvider({ children }) {
     }
   };
 
-  // motivo é opcional — só salvo quando status === "recusado"
+
   const atualizarStatus = async (id, novoStatus, motivo = null) => {
     setDoacoes((prev) =>
       prev.map((d) =>
