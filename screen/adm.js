@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Animated,
+  Modal,
 } from "react-native";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
@@ -16,9 +17,7 @@ const CATEGORIAS_FILTRO = ["Todas", "Cesta básica", "Alimentos", "Higiene", "Li
 const MOTIVOS_RECUSA = [
   "Item inadequado",
   "Informações incompletas",
-  "Duplicado",
-  "Fora da área de atendimento",
-  "Outro motivo",
+  "Outro",
 ];
 
 export default function Adm({ navigation }) {
@@ -28,15 +27,17 @@ export default function Adm({ navigation }) {
   const [abaSelecionada, setAbaSelecionada] = useState("Pendentes");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
 
-  // Desfazer última ação
+
   const [ultimaAcao, setUltimaAcao] = useState(null);
   const [mostrarUndo, setMostrarUndo] = useState(false);
   const undoOpacity = useRef(new Animated.Value(0)).current;
   const undoTimer = useRef(null);
 
+  const [modalRecusa, setModalRecusa] = useState({ visible: false, doacao: null });
+
   const borderColor = modoNoturno ? theme.border : "#111827";
 
-  // ─── Cálculos ───────────────────────────────────────────────────────────────
+
 
   const doacoesPendentes = doacoes.filter((d) => d.status === "pendente_aprovacao_doacao");
   const pedidosPendentes = doacoes.filter((d) => d.status === "pendente_aprovacao_pedido");
@@ -70,7 +71,7 @@ export default function Adm({ navigation }) {
   const itemMaisDoado = categoriasOrdenadas[0]?.[0] || "—";
   const maxContagem = categoriasOrdenadas[0]?.[1] || 1;
 
-  // ─── Toast Desfazer ─────────────────────────────────────────────────────────
+ 
 
   const mostrarToastUndo = (id, statusAnterior, statusNovo) => {
     if (undoTimer.current) clearTimeout(undoTimer.current);
@@ -110,7 +111,7 @@ export default function Adm({ navigation }) {
     };
   }, []);
 
-  // ─── Ações ──────────────────────────────────────────────────────────────────
+  
 
   const aprovar = (d, tipo) => {
     const statusAnterior = d.status;
@@ -120,24 +121,19 @@ export default function Adm({ navigation }) {
   };
 
   const recusar = (d) => {
-    Alert.alert(
-      "Motivo da recusa",
-      "Selecione o motivo:",
-      [
-        ...MOTIVOS_RECUSA.map((motivo) => ({
-          text: motivo,
-          onPress: () => {
-            const statusAnterior = d.status;
-            atualizarStatus(d.id, "recusado", motivo);
-            mostrarToastUndo(d.id, statusAnterior, "recusado");
-          },
-        })),
-        { text: "Cancelar", style: "cancel" },
-      ]
-    );
+    setModalRecusa({ visible: true, doacao: d });
   };
 
-  // ─── Helpers de UI ──────────────────────────────────────────────────────────
+  const confirmarRecusa = (motivo) => {
+    const d = modalRecusa.doacao;
+    if (!d) return;
+    const statusAnterior = d.status;
+    atualizarStatus(d.id, "recusado", motivo);
+    mostrarToastUndo(d.id, statusAnterior, "recusado");
+    setModalRecusa({ visible: false, doacao: null });
+  };
+
+
 
   const renderVazio = (texto) => (
     <View style={[styles.emptyBox, { backgroundColor: theme.cardAlt, borderColor }]}>
@@ -151,7 +147,7 @@ export default function Adm({ navigation }) {
     disponivel: { label: "Disponível", cor: theme.primary },
   };
 
-  // ─── Cards ──────────────────────────────────────────────────────────────────
+
 
   const renderCardPendente = (d, tipo) => {
     const isDoacao = tipo === "doacao";
@@ -239,7 +235,7 @@ export default function Adm({ navigation }) {
     );
   };
 
-  // ─── Gráfico de barras ──────────────────────────────────────────────────────
+
 
   const renderGrafico = () => {
     if (categoriasOrdenadas.length === 0) return renderVazio("Nenhum dado para o gráfico");
@@ -273,7 +269,7 @@ export default function Adm({ navigation }) {
     );
   };
 
-  // ─── Aba Pendentes ──────────────────────────────────────────────────────────
+
 
   const renderAbaPendentes = () => (
     <>
@@ -306,7 +302,7 @@ export default function Adm({ navigation }) {
     </>
   );
 
-  // ─── Aba Histórico ──────────────────────────────────────────────────────────
+
 
   const renderAbaHistorico = () => (
     <>
@@ -325,7 +321,7 @@ export default function Adm({ navigation }) {
         </View>
       </View>
 
-      {/* Taxa de aprovação + item mais doado */}
+     
       <View style={styles.statsRow}>
         <View style={[styles.insightCard, { backgroundColor: theme.cardAlt, borderColor }]}>
           <Text style={[styles.insightLabel, { color: theme.muted }]}>Taxa de aprovação</Text>
@@ -339,10 +335,9 @@ export default function Adm({ navigation }) {
         </View>
       </View>
 
-      {/* Gráfico */}
+  
       {renderGrafico()}
 
-      {/* Filtro por categoria */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sub, { color: theme.title }]}>Movimentações</Text>
         <Text style={[styles.badge, { color: theme.muted }]}>{historicoFiltrado.length}</Text>
@@ -383,7 +378,7 @@ export default function Adm({ navigation }) {
     </>
   );
 
-  // ─── Render principal ───────────────────────────────────────────────────────
+ 
 
   return (
     <View style={{ flex: 1 }}>
@@ -399,7 +394,7 @@ export default function Adm({ navigation }) {
           </Text>
         </View>
 
-        {/* Abas */}
+
         <View style={[styles.tabsContainer, { backgroundColor: theme.cardAlt, borderColor }]}>
           {ABAS.map((aba) => {
             const ativa = abaSelecionada === aba;
@@ -433,7 +428,7 @@ export default function Adm({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Toast Desfazer */}
+      
       {mostrarUndo && (
         <Animated.View
           style={[
@@ -451,6 +446,38 @@ export default function Adm({ navigation }) {
           </TouchableOpacity>
         </Animated.View>
       )}
+
+      
+      <Modal
+        visible={modalRecusa.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalRecusa({ visible: false, doacao: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor }]}>
+            <Text style={[styles.modalTitle, { color: theme.title }]}>Motivo da recusa</Text>
+            <Text style={[styles.modalSub, { color: theme.muted }]}>Selecione o motivo:</Text>
+            {MOTIVOS_RECUSA.map((motivo) => (
+              <TouchableOpacity
+                key={motivo}
+                activeOpacity={0.8}
+                style={[styles.modalOption, { backgroundColor: theme.cardAlt, borderColor }]}
+                onPress={() => confirmarRecusa(motivo)}
+              >
+                <Text style={[styles.modalOptionText, { color: theme.title }]}>{motivo}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.modalCancel, { borderColor }]}
+              onPress={() => setModalRecusa({ visible: false, doacao: null })}
+            >
+              <Text style={[styles.modalCancelText, { color: theme.muted }]}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -578,4 +605,50 @@ const styles = StyleSheet.create({
   undoTexto: { fontSize: 14, fontWeight: "700" },
   undoBotao: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
   undoBotaoTexto: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalContent: {
+    width: "100%",
+    borderWidth: 1,
+    borderRadius: 22,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  modalSub: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+  modalOption: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+  },
+  modalOptionText: {
+    fontSize: 15,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  modalCancel: {
+    borderWidth: 0,
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 4,
+    alignItems: "center",
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
 });

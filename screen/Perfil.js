@@ -1,12 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Switch,
-  Alert,
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TemaContext } from "../TemaContext";
@@ -31,9 +24,9 @@ export default function Perfil() {
       return;
     }
     try {
-      // Atualiza no Auth
+    
       await user.updateEmail(email);
-      // Atualiza no Firestore
+    
       await firebase.firestore().collection('usuarios').doc(user.uid).set({
         email,
         atualizadoEm: new Date().toISOString(),
