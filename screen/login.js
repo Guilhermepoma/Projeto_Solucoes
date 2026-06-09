@@ -70,7 +70,7 @@ export default function Login({ navigation }) {
           }
           try {
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, senha);
-            // Salva dados do usuário no Firestore
+      
             await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
               email: userCredential.user.email,
               criadoEm: new Date().toISOString(),

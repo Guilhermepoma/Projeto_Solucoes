@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,12 +11,36 @@ import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
 
 import { TemaContext } from "../TemaContext";
+import { AuthContext } from "../AuthContext";
 
 export default function PedirDoacao({ navigation }) {
   const { doacoes, atualizarStatus } = useContext(DoacoesContext);
   const { modoNoturno, theme } = useContext(TemaContext);
+  const { user } = useContext(AuthContext);
 
   const disponiveis = doacoes.filter((d) => d.status === "disponivel");
+
+  const [statsPedidos, setStatsPedidos] = useState({ total: 0, aceitos: 0 });
+
+  useEffect(() => {
+    if (user) carregarStats();
+  }, [user]);
+
+  const carregarStats = async () => {
+    try {
+      const snapshot = await firebase.firestore()
+        .collection('pedidos')
+        .where('usuarioId', '==', user.uid)
+        .get();
+      const pedidos = snapshot.docs.map((doc) => doc.data());
+      setStatsPedidos({
+        total: pedidos.length,
+        aceitos: pedidos.filter((p) => p.status === "finalizado").length,
+      });
+    } catch (error) {
+      console.error('Erro ao carregar stats:', error);
+    }
+  };
 
   const [deliveryDates, setDeliveryDates] = useState({});
   const [showCalendars, setShowCalendars] = useState({});
@@ -52,6 +76,24 @@ export default function PedirDoacao({ navigation }) {
         >
           <Text style={[styles.summaryNumber, { color: theme.title }]}>{disponiveis.length}</Text>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>disponíveis agora</Text>
+        </View>
+        <View
+          style={[
+            styles.summaryCard,
+            { backgroundColor: theme.cardAlt, borderColor: modoNoturno ? theme.border : "#111827" },
+          ]}
+        >
+          <Text style={[styles.summaryNumber, { color: theme.success }]}>{statsPedidos.aceitos}</Text>
+          <Text style={[styles.summaryLabel, { color: theme.muted }]}>pedidos aceitos</Text>
+        </View>
+        <View
+          style={[
+            styles.summaryCard,
+            { backgroundColor: theme.cardAlt, borderColor: modoNoturno ? theme.border : "#111827" },
+          ]}
+        >
+          <Text style={[styles.summaryNumber, { color: theme.title }]}>{statsPedidos.total}</Text>
+          <Text style={[styles.summaryLabel, { color: theme.muted }]}>total pedidos</Text>
         </View>
       </View>
 
