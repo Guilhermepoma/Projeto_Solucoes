@@ -41,7 +41,7 @@ export default function PedirDoacao({ navigation }) {
     }
   };
 
-  const opcoesEntrega = [" pessoalmente", "Retirada no local"];
+  const opcoesEntrega = ["Entrego pessoalmente", "Retirada no local"];
 
   return (
     <ScrollView

@@ -2,11 +2,13 @@ import React, { useContext, useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import { TemaContext } from "../TemaContext";
 import { AuthContext } from '../AuthContext';
 import firebase from '../firebaseConfig';
 
 export default function Perfil() {
+  const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
@@ -17,6 +19,14 @@ export default function Perfil() {
       setEmail(user.email);
     }
   }, [user]);
+
+  const logout = async () => {
+    try {
+      await firebase.auth().signOut();
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível sair.");
+    }
+  };
 
   const salvarEmail = async () => {
     if (!email.trim()) {
@@ -132,6 +142,14 @@ export default function Perfil() {
             thumbColor={modoNoturno ? "#FFFFFF" : "#111827"}
           />
         </View>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[styles.logoutButton, { backgroundColor: theme.danger }]}
+          onPress={logout}
+        >
+          <Text style={styles.logoutButtonText}>Sair da conta</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -246,5 +264,18 @@ const styles = StyleSheet.create({
 
   optionText: {
     flex: 1,
+  },
+
+  logoutButton: {
+    padding: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 8,
+  },
+
+  logoutButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });

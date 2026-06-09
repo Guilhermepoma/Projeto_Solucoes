@@ -1,7 +1,7 @@
 // DoacoesContext.js
 // Coloque na raiz do projeto (mesmo nível do App.js)
 
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
 import firebase from './firebaseConfig';
 

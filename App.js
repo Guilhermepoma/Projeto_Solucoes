@@ -18,7 +18,7 @@ const Drawer = createDrawerNavigator();
 
 function Rotas() {
   const { modoNoturno, theme } = useContext(TemaContext);
-  const { isAdmin, loading } = React.useContext(AuthContext);
+  const { user, isAdmin, loading } = React.useContext(AuthContext);
 
   const navigationTheme = {
     ...(modoNoturno ? DarkTheme : DefaultTheme),
@@ -37,10 +37,10 @@ function Rotas() {
   if (loading) return null;
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer key={user ? "logado" : "deslogado"} theme={navigationTheme}>
       <DoacoesProvider>
         <Drawer.Navigator
-          initialRouteName="Login"
+          initialRouteName={user ? "Home" : "Login"}
           screenOptions={({ navigation }) => ({
             drawerStyle: { backgroundColor: theme.card },
             drawerActiveBackgroundColor: theme.primary,
