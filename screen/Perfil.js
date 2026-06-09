@@ -175,7 +175,7 @@ export default function Perfil() {
           />
         </View>
 
-        {/* Meus Pedidos */}
+    
         <View style={[styles.pedidosHeader, { borderColor }]}>
           <View>
             <Text style={[styles.pedidosTitulo, { color: theme.title }]}>Meus Pedidos</Text>
