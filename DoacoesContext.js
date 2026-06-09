@@ -38,49 +38,17 @@ export function DoacoesProvider({ children }) {
   };
 
 
-  const atualizarPedidoStatus = async (doacaoId, novoStatus) => {
-    try {
-      const snapshot = await firebase.firestore()
-        .collection('pedidos')
-        .where('doacaoId', '==', doacaoId)
-        .get();
-      snapshot.docs.forEach((doc) => {
-        doc.ref.update({ status: novoStatus });
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar pedido:', error);
-    }
-  };
-
-  const atualizarStatus = async (id, novoStatus, motivo = null) => {
-    if (novoStatus === "recusado") {
-      setDoacoes((prev) => prev.filter((d) => d.id !== id));
-      try {
-        await firebase.firestore().collection('doacoes').doc(id).delete();
-        await atualizarPedidoStatus(id, "recusado");
-      } catch (error) {
-        console.error('Erro ao recusar doação no Firestore:', error);
-        Alert.alert("Erro", "Não foi possível recusar a doação no Firestore.");
-      }
-      return;
-    }
+  const atualizarStatus = async (id, novoStatus, dadosExtras = {}) => {
+    const campos = {
+      status: novoStatus,
+      atualizadoEm: new Date().toISOString(),
+      ...dadosExtras,
+    };
     setDoacoes((prev) =>
-      prev.map((d) =>
-        d.id === id
-          ? {
-              ...d,
-              status: novoStatus,
-              atualizadoEm: new Date().toISOString(),
-            }
-          : d
-      )
+      prev.map((d) => (d.id === id ? { ...d, ...campos } : d))
     );
     try {
-      await firebase.firestore().collection('doacoes').doc(id).update({
-        status: novoStatus,
-        atualizadoEm: new Date().toISOString(),
-      });
-      await atualizarPedidoStatus(id, novoStatus);
+      await firebase.firestore().collection('doacoes').doc(id).update(campos);
     } catch (error) {
       console.error('Erro ao atualizar status da doação no Firestore:', error);
       Alert.alert("Erro", "Não foi possível atualizar o status. Verifique sua conexão e tente novamente.");

@@ -1,10 +1,11 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert, ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { TemaContext } from "../TemaContext";
 import { AuthContext } from '../AuthContext';
+import { DoacoesContext } from "../DoacoesContext";
 import firebase from '../firebaseConfig';
 
 export default function Perfil() {
@@ -13,28 +14,18 @@ export default function Perfil() {
   const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
   const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
-  const [meusPedidos, setMeusPedidos] = useState([]);
+  const { doacoes } = useContext(DoacoesContext);
 
   useEffect(() => {
-    if (user) {
-      setEmail(user.email);
-      carregarPedidos();
-    }
+    if (user) setEmail(user.email);
   }, [user]);
 
-  const carregarPedidos = async () => {
-    try {
-      const snapshot = await firebase.firestore()
-        .collection('pedidos')
-        .where('usuarioId', '==', user.uid)
-        .orderBy('solicitadoEm', 'desc')
-        .get();
-      const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setMeusPedidos(lista);
-    } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
-    }
-  };
+  const meusPedidos = useMemo(() =>
+    doacoes
+      .filter((d) => d.solicitanteId === user?.uid)
+      .sort((a, b) => (b.solicitadoEm || "").localeCompare(a.solicitadoEm || "")),
+    [doacoes, user]
+  );
 
   const statusPedido = (status) => {
     const config = {
@@ -74,10 +65,6 @@ export default function Perfil() {
     }
   };
 
-  const recarregarPedidos = () => {
-    if (user) carregarPedidos();
-  };
-
   const borderColor = modoNoturno ? theme.border : "#111827";
 
   return (
@@ -90,7 +77,7 @@ export default function Perfil() {
           ]}
         >
           <TouchableOpacity activeOpacity={0.85} style={styles.avatar}>
-            <Text style={styles.avatarText}>U</Text>
+            <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase() || "U"}</Text>
           </TouchableOpacity>
 
           <Text style={[styles.name, { color: theme.title }]}>Meu Perfil</Text>
@@ -183,13 +170,6 @@ export default function Perfil() {
               Histórico de solicitações feitas
             </Text>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={[styles.recarregarBtn, { backgroundColor: theme.primary }]}
-            onPress={recarregarPedidos}
-          >
-            <Text style={styles.recarregarBtnText}>Recarregar</Text>
-          </TouchableOpacity>
         </View>
 
         {meusPedidos.length === 0 ? (
@@ -216,11 +196,11 @@ export default function Perfil() {
                     <Text style={[styles.statusText, { color: st.cor }]}>{st.label}</Text>
                   </View>
                 </View>
-                {p.entrega ? (
-                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Entrega: {p.entrega}</Text>
+                {p.solicitanteMetodo ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Entrega: {p.solicitanteMetodo}</Text>
                 ) : null}
-                {p.endereco ? (
-                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Local: {p.endereco}</Text>
+                {p.solicitanteLocal ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Local: {p.solicitanteLocal}</Text>
                 ) : null}
                 <Text style={[styles.pedidoData, { color: theme.muted }]}>
                   Solicitado em: {new Date(p.solicitadoEm).toLocaleDateString("pt-BR")}
@@ -383,18 +363,6 @@ const styles = StyleSheet.create({
   pedidosSub: {
     fontSize: 13,
     marginTop: 2,
-  },
-
-  recarregarBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-
-  recarregarBtnText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "800",
   },
 
   emptyBox: {

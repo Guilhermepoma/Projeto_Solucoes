@@ -128,7 +128,7 @@ export default function Adm({ navigation }) {
     const d = modalRecusa.doacao;
     if (!d) return;
     const statusAnterior = d.status;
-    atualizarStatus(d.id, "recusado", motivo);
+    atualizarStatus(d.id, "recusado", { motivoRecusa: motivo });
     mostrarToastUndo(d.id, statusAnterior, "recusado");
     setModalRecusa({ visible: false, doacao: null });
   };
@@ -175,11 +175,22 @@ export default function Adm({ navigation }) {
         </View>
 
         <View style={styles.metaList}>
-          <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
-          {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
-          {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
+          {isDoacao ? (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
+              {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
+              {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
+            </>
+          ) : (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Solicitante: {d.solicitanteEmail || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.solicitanteMetodo || "A combinar"}</Text>
+              {!!d.solicitanteData && <Text style={[styles.metaText, { color: theme.text }]}>Data: {d.solicitanteData}</Text>}
+              {!!d.solicitanteLocal && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.solicitanteLocal}</Text>}
+            </>
+          )}
         </View>
 
         <View style={styles.row}>
@@ -223,10 +234,22 @@ export default function Adm({ navigation }) {
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         <View style={styles.metaList}>
-          <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
-          {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
+          {d.solicitanteId ? (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Solicitante: {d.solicitanteEmail || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.solicitanteMetodo || "A combinar"}</Text>
+              {!!d.solicitanteData && <Text style={[styles.metaText, { color: theme.text }]}>Data: {d.solicitanteData}</Text>}
+              {!!d.solicitanteLocal && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.solicitanteLocal}</Text>}
+            </>
+          ) : (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
+              {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
+              {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
+            </>
+          )}
           {!!d.motivoRecusa && (
             <Text style={[styles.metaText, { color: theme.danger }]}>Motivo recusa: {d.motivoRecusa}</Text>
           )}
