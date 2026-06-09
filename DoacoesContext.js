@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { Alert } from "react-native";
 import firebase from './firebaseConfig';
 
 export const DoacoesContext = createContext();
@@ -37,13 +38,22 @@ export function DoacoesProvider({ children }) {
 
 
   const atualizarStatus = async (id, novoStatus, motivo = null) => {
+    if (novoStatus === "recusado") {
+      setDoacoes((prev) => prev.filter((d) => d.id !== id));
+      try {
+        await firebase.firestore().collection('doacoes').doc(id).delete();
+      } catch (error) {
+        console.error('Erro ao recusar doação no Firestore:', error);
+        Alert.alert("Erro", "Não foi possível recusar a doação no Firestore.");
+      }
+      return;
+    }
     setDoacoes((prev) =>
       prev.map((d) =>
         d.id === id
           ? {
               ...d,
               status: novoStatus,
-              motivoRecusa: novoStatus === "recusado" ? motivo : null,
               atualizadoEm: new Date().toISOString(),
             }
           : d
@@ -52,11 +62,11 @@ export function DoacoesProvider({ children }) {
     try {
       await firebase.firestore().collection('doacoes').doc(id).update({
         status: novoStatus,
-        motivoRecusa: novoStatus === "recusado" ? motivo : null,
         atualizadoEm: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Erro ao atualizar status da doação no Firestore:', error);
+      Alert.alert("Erro", "Não foi possível atualizar o status no Firestore.");
     }
   };
 
