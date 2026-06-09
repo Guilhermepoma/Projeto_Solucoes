@@ -19,7 +19,7 @@ export default function Login({ navigation }) {
       await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
         email: userCredential.user.email,
         criadoEm: new Date().toISOString(),
-        isAdmin: email === 'admin@gmail.com',
+        ultimoLogin: new Date().toISOString(),
       }, { merge: true });
       navigation.navigate("Home");
     } catch (error) {
@@ -74,7 +74,6 @@ export default function Login({ navigation }) {
             await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).set({
               email: userCredential.user.email,
               criadoEm: new Date().toISOString(),
-              isAdmin: email === 'admin@gmail.com',
             });
             Alert.alert("Sucesso", "Conta criada com sucesso! Você já pode entrar.");
           } catch (error) {

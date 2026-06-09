@@ -158,7 +158,7 @@ export default function FazerDoacao({ navigation }) {
           placeholderTextColor={theme.muted}
           value={contato}
           onChangeText={setContato}
-          keyboardType="email-address"
+          keyboardType="phone-pad"
         />
 
         <Text style={[styles.sectionTitle, { color: theme.title }]}>Itens da doação</Text>

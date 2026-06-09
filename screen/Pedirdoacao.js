@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
@@ -36,10 +37,11 @@ export default function PedirDoacao({ navigation }) {
       });
     } catch (error) {
       console.error('Erro ao salvar pedido no Firestore:', error);
+      Alert.alert("Erro", "Não foi possível solicitar a doação. Verifique sua conexão e tente novamente.");
     }
   };
 
-  const opcoesEntrega = ["Entrego pessoalmente", "Retirada no local"];
+  const opcoesEntrega = [" pessoalmente", "Retirada no local"];
 
   return (
     <ScrollView
