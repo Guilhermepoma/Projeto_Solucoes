@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert,
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert, ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -13,12 +13,38 @@ export default function Perfil() {
   const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
   const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
+  const [meusPedidos, setMeusPedidos] = useState([]);
 
   useEffect(() => {
     if (user) {
       setEmail(user.email);
+      carregarPedidos();
     }
   }, [user]);
+
+  const carregarPedidos = async () => {
+    try {
+      const snapshot = await firebase.firestore()
+        .collection('pedidos')
+        .where('usuarioId', '==', user.uid)
+        .orderBy('solicitadoEm', 'desc')
+        .get();
+      const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMeusPedidos(lista);
+    } catch (error) {
+      console.error('Erro ao carregar pedidos:', error);
+    }
+  };
+
+  const statusPedido = (status) => {
+    const config = {
+      pendente_aprovacao_pedido: { label: "Aguardando aprovação", cor: "#F59E0B" },
+      finalizado: { label: "Aprovado", cor: "#22C55E" },
+      recusado: { label: "Recusado", cor: "#EF4444" },
+      disponivel: { label: "Disponível", cor: "#3B82F6" },
+    };
+    return config[status] || { label: status, cor: "#9CA3AF" };
+  };
 
   const logout = async () => {
     try {
@@ -48,9 +74,15 @@ export default function Perfil() {
     }
   };
 
+  const recarregarPedidos = () => {
+    if (user) carregarPedidos();
+  };
+
+  const borderColor = modoNoturno ? theme.border : "#111827";
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View
           style={[
             styles.profileCard,
@@ -143,6 +175,61 @@ export default function Perfil() {
           />
         </View>
 
+        {/* Meus Pedidos */}
+        <View style={[styles.pedidosHeader, { borderColor }]}>
+          <View>
+            <Text style={[styles.pedidosTitulo, { color: theme.title }]}>Meus Pedidos</Text>
+            <Text style={[styles.pedidosSub, { color: theme.muted }]}>
+              Histórico de solicitações feitas
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.recarregarBtn, { backgroundColor: theme.primary }]}
+            onPress={recarregarPedidos}
+          >
+            <Text style={styles.recarregarBtnText}>Recarregar</Text>
+          </TouchableOpacity>
+        </View>
+
+        {meusPedidos.length === 0 ? (
+          <View style={[styles.emptyBox, { backgroundColor: theme.cardAlt, borderColor }]}>
+            <Text style={[styles.emptyText, { color: theme.muted }]}>
+              Nenhum pedido encontrado
+            </Text>
+          </View>
+        ) : (
+          meusPedidos.map((p) => {
+            const st = statusPedido(p.status);
+            return (
+              <View key={p.id} style={[styles.pedidoCard, { backgroundColor: theme.card, borderColor }]}>
+                <View style={styles.pedidoHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.pedidoItem, { color: theme.title }]}>
+                      {p.item || "Doação"}
+                    </Text>
+                    <Text style={[styles.pedidoDetalhe, { color: theme.muted }]}>
+                      {p.categoria || ""}{p.categoria && p.quantidade ? " • " : ""}{p.quantidade || ""}
+                    </Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: st.cor + "22", borderColor: st.cor }]}>
+                    <Text style={[styles.statusText, { color: st.cor }]}>{st.label}</Text>
+                  </View>
+                </View>
+                {p.entrega ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Entrega: {p.entrega}</Text>
+                ) : null}
+                {p.endereco ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Local: {p.endereco}</Text>
+                ) : null}
+                <Text style={[styles.pedidoData, { color: theme.muted }]}>
+                  Solicitado em: {new Date(p.solicitadoEm).toLocaleDateString("pt-BR")}
+                </Text>
+              </View>
+            );
+          })
+        )}
+
         <TouchableOpacity
           activeOpacity={0.85}
           style={[styles.logoutButton, { backgroundColor: theme.danger }]}
@@ -150,7 +237,7 @@ export default function Perfil() {
         >
           <Text style={styles.logoutButtonText}>Sair da conta</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -161,9 +248,8 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    flex: 1,
     padding: 22,
-    justifyContent: "center",
+    paddingBottom: 34,
   },
 
   profileCard: {
@@ -277,5 +363,95 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
+  },
+
+  pedidosHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+    marginBottom: 14,
+    borderTopWidth: 1,
+    paddingTop: 18,
+  },
+
+  pedidosTitulo: {
+    fontSize: 19,
+    fontWeight: "800",
+  },
+
+  pedidosSub: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  recarregarBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+
+  recarregarBtnText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  emptyBox: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+  },
+
+  emptyText: {
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+
+  pedidoCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  pedidoHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+
+  pedidoItem: {
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+
+  pedidoDetalhe: {
+    fontSize: 13,
+  },
+
+  statusBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+
+  statusText: {
+    fontSize: 11,
+    fontWeight: "800",
+  },
+
+  pedidoInfo: {
+    fontSize: 13,
+    marginBottom: 2,
+  },
+
+  pedidoData: {
+    fontSize: 12,
+    marginTop: 4,
   },
 });
