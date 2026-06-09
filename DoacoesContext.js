@@ -2,6 +2,7 @@
 // Coloque na raiz do projeto (mesmo nível do App.js)
 
 import React, { createContext, useState } from "react";
+import { Alert } from "react-native";
 import firebase from './firebaseConfig';
 
 export const DoacoesContext = createContext();
@@ -21,6 +22,7 @@ export function DoacoesProvider({ children }) {
       setDoacoes((prev) => [nova, ...prev]);
     } catch (error) {
       console.error('Erro ao salvar doação no Firestore:', error);
+      Alert.alert("Erro", "Não foi possível salvar a doação. Verifique sua conexão e tente novamente.");
     }
   };
 
@@ -46,6 +48,7 @@ export function DoacoesProvider({ children }) {
       });
     } catch (error) {
       console.error('Erro ao atualizar status da doação no Firestore:', error);
+      Alert.alert("Erro", "Não foi possível atualizar o status. Verifique sua conexão e tente novamente.");
     }
   };
 
