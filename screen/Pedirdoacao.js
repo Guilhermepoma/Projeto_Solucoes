@@ -6,11 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
-import firebase from '../firebaseConfig';
+
 import { TemaContext } from "../TemaContext";
 
 export default function PedirDoacao({ navigation }) {
@@ -25,23 +24,10 @@ export default function PedirDoacao({ navigation }) {
   const [locaisEntrega, setLocaisEntrega] = useState({});
 
   const solicitar = async (id) => {
-    atualizarStatus(id, "pendente_aprovacao_pedido");
-    try {
-      await firebase.firestore().collection('pedidos').add({
-        doacaoId: id,
-        solicitadoEm: new Date().toISOString(),
-        status: 'pendente_aprovacao_pedido',
-        dataEntrega: deliveryDates[id] || null,
-        metodoEntrega: metodosEntrega[id] || "Entrego pessoalmente",
-        localEntrega: locaisEntrega[id] || "",
-      });
-    } catch (error) {
-      console.error('Erro ao salvar pedido no Firestore:', error);
-      Alert.alert("Erro", "Não foi possível solicitar a doação. Verifique sua conexão e tente novamente.");
-    }
+    await atualizarStatus(id, "pendente_aprovacao_pedido");
   };
 
-  const opcoesEntrega = ["Entrego pessoalmente", "Retirada no local"];
+  const opcoesEntrega = ["Vou buscar", "Preciso receber"];
 
   return (
     <ScrollView
@@ -104,28 +90,6 @@ export default function PedirDoacao({ navigation }) {
               </Text>
             </View>
           </View>
-
-          <View style={styles.infoGrid}>
-            <View style={[styles.infoBox, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}>
-              <Text style={[styles.infoLabel, { color: theme.muted }]}>Entrega</Text>
-              <Text style={[styles.infoValue, { color: theme.title }]}>
-                {d.entrega || "A combinar"}
-              </Text>
-            </View>
-
-            <View style={[styles.infoBox, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}>
-              <Text style={[styles.infoLabel, { color: theme.muted }]}>Contato</Text>
-              <Text style={[styles.infoValue, { color: theme.title }]}>
-                {d.contato || "Após aprovação"}
-              </Text>
-            </View>
-          </View>
-
-          {!!d.endereco && (
-            <Text style={[styles.detailText, { color: theme.text }]}>
-              Local: {d.endereco}
-            </Text>
-          )}
 
           {!!d.observacoes && (
             <Text style={[styles.detailText, { color: theme.text }]}>
@@ -214,7 +178,7 @@ export default function PedirDoacao({ navigation }) {
             ))}
           </View>
 
-          {metodosEntrega[d.id] === "Retirada no local" && (
+          {metodosEntrega[d.id] === "Preciso receber" && (
             <>
               <Text style={[styles.sectionLabel, { color: theme.title }]}>
                 Local para retirada *
@@ -247,7 +211,7 @@ export default function PedirDoacao({ navigation }) {
       <TouchableOpacity
         activeOpacity={0.85}
         style={[styles.voltar, { backgroundColor: theme.admin }]}
-        onPress={() => navigation.goBack()}
+        onPress={() => navigation.navigate("Home")}
       >
         <Text style={styles.txt}>Voltar</Text>
       </TouchableOpacity>
@@ -384,30 +348,6 @@ const styles = StyleSheet.create({
   itemSubtitle: {
     fontSize: 14,
     fontWeight: "700",
-  },
-
-  infoGrid: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
-
-  infoBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
-  },
-
-  infoLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    marginBottom: 5,
-  },
-
-  infoValue: {
-    fontSize: 14,
-    fontWeight: "800",
   },
 
   detailText: {
