@@ -422,7 +422,7 @@ export default function Adm({ navigation }) {
         <TouchableOpacity
           activeOpacity={0.85}
           style={[styles.voltar, { backgroundColor: theme.admin }]}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("Home")}
         >
           <Text style={styles.txt}>Voltar</Text>
         </TouchableOpacity>
