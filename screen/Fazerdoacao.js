@@ -45,6 +45,20 @@ export default function FazerDoacao({ navigation }) {
     color: theme.title,
   };
 
+  const limparForm = () => {
+    setNome("");
+    setContato("");
+    setItem("");
+    setQuantidade("");
+    setCategoria(categorias[0]);
+    setEntrega(entregas[0]);
+    setPostoSelecionado(null);
+    setEndereco("");
+    setObservacoes("");
+    setDataEntrega("");
+    setShowCalendar(false);
+  };
+
   const enviar = () => {
     if (!nome.trim() || !contato.trim() || !item.trim() || !quantidade.trim()) {
       Alert.alert("Erro", "Preencha nome, contato, item e quantidade");
@@ -73,6 +87,7 @@ export default function FazerDoacao({ navigation }) {
       dataEntrega: dataEntrega || null,
     });
 
+    limparForm();
     Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
     navigation.navigate("Home");
   };
