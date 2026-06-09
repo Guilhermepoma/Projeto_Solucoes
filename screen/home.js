@@ -73,14 +73,6 @@ export default function Home({ navigation }) {
             </View>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={[styles.adminButton, { backgroundColor: theme.admin, borderColor: theme.admin }]}
-          onPress={() => navigation.navigate("Adm")}
-        >
-          <Text style={styles.adminButtonText}>Área Administrativa</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
