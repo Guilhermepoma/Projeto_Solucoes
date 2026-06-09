@@ -37,7 +37,6 @@ export function DoacoesProvider({ children }) {
     }
   };
 
-
   const atualizarPedidoStatus = async (doacaoId, novoStatus) => {
     try {
       const snapshot = await firebase.firestore()
@@ -67,11 +66,7 @@ export function DoacoesProvider({ children }) {
     setDoacoes((prev) =>
       prev.map((d) =>
         d.id === id
-          ? {
-              ...d,
-              status: novoStatus,
-              atualizadoEm: new Date().toISOString(),
-            }
+          ? { ...d, status: novoStatus, atualizadoEm: new Date().toISOString() }
           : d
       )
     );

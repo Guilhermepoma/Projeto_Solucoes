@@ -1,14 +1,7 @@
 import React, { useContext, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Linking,
-  Platform,
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, Alert, ScrollView, Linking, Platform,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import * as Location from "expo-location";
@@ -18,8 +11,8 @@ import { TemaContext } from "../TemaContext";
 const categorias = ["Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
 const entregas = ["Posso entregar", "Precisa retirar"];
 const postos = [
-  { nome: "Posto Central", endereco: "Rua Afonso Pena, 150 - Centro, São Paulo - SP" },
-  { nome: "Posto Zona Sul", endereco: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP" },
+  { nome: "Posto Central",    endereco: "Rua Afonso Pena, 150 - Centro, São Paulo - SP" },
+  { nome: "Posto Zona Sul",   endereco: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP" },
   { nome: "Posto Zona Norte", endereco: "Rua Augusta, 500 - Consolação, São Paulo - SP" },
 ];
 
@@ -45,67 +38,6 @@ export default function FazerDoacao({ navigation }) {
     color: theme.title,
   };
 
-  const enviar = () => {
-    if (!nome.trim() || !contato.trim() || !item.trim() || !quantidade.trim()) {
-      Alert.alert("Erro", "Preencha nome, contato, item e quantidade");
-      return;
-    }
-
-    if (entrega === "Posso entregar" && !postoSelecionado) {
-      Alert.alert("Erro", "Selecione um posto de entrega");
-      return;
-    }
-
-    if (entrega === "Precisa retirar" && !endereco.trim()) {
-      Alert.alert("Erro", "Informe o endereço ou ponto de retirada");
-      return;
-    }
-
-    adicionarDoacao({
-      nome,
-      contato,
-      item,
-      quantidade,
-      categoria,
-      entrega,
-      endereco: entrega === "Posso entregar" ? postoSelecionado.endereco : endereco,
-      observacoes,
-      dataEntrega: dataEntrega || null,
-    });
-
-    Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
-    navigation.navigate("Home");
-  };
-
-  const abrirMapa = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permissão negada", "Permita o acesso à localização para usar o mapa");
-        return;
-      }
-
-      const loc = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = loc.coords;
-
-      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
-      if (geocode.length > 0) {
-        const addr = geocode[0];
-        const parts = [addr.street, addr.district, addr.city, addr.region, addr.country].filter(Boolean);
-        setEndereco(parts.join(", "));
-      }
-
-      const url = Platform.select({
-        ios: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
-        android: `geo:${latitude},${longitude}?q=${latitude},${longitude}`,
-        default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
-      });
-      await Linking.openURL(url);
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível abrir o mapa");
-    }
-  };
-
   const renderChip = (label, selected, onPress) => (
     <TouchableOpacity
       key={label}
@@ -124,6 +56,55 @@ export default function FazerDoacao({ navigation }) {
       </Text>
     </TouchableOpacity>
   );
+
+  const abrirMapa = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão negada", "Permita o acesso à localização para usar o mapa");
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (geocode.length > 0) {
+        const addr = geocode[0];
+        const parts = [addr.street, addr.district, addr.city, addr.region, addr.country].filter(Boolean);
+        setEndereco(parts.join(", "));
+      }
+      const url = Platform.select({
+        ios: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+        android: `geo:${latitude},${longitude}?q=${latitude},${longitude}`,
+        default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+      });
+      await Linking.openURL(url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o mapa");
+    }
+  };
+
+  const enviar = () => {
+    if (!nome.trim() || !contato.trim() || !item.trim() || !quantidade.trim()) {
+      Alert.alert("Erro", "Preencha nome, contato, item e quantidade");
+      return;
+    }
+    if (entrega === "Posso entregar" && !postoSelecionado) {
+      Alert.alert("Erro", "Selecione um posto de entrega");
+      return;
+    }
+    if (entrega === "Precisa retirar" && !endereco.trim()) {
+      Alert.alert("Erro", "Informe o endereço ou ponto de retirada");
+      return;
+    }
+    adicionarDoacao({
+      nome, contato, item, quantidade, categoria, entrega,
+      endereco: entrega === "Posso entregar" ? postoSelecionado.endereco : endereco,
+      observacoes,
+      dataEntrega: dataEntrega || null,
+    });
+    Alert.alert("Enviado", "Sua doação foi enviada para aprovação");
+    navigation.navigate("Home");
+  };
 
   return (
     <ScrollView
@@ -208,7 +189,6 @@ export default function FazerDoacao({ navigation }) {
             <Text style={{ color: theme.muted }}>Selecionar data</Text>
           </TouchableOpacity>
         )}
-
         {showCalendar && (
           <View style={styles.calendarWrap}>
             <Calendar
@@ -312,154 +292,49 @@ export default function FazerDoacao({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  content: { padding: 20, paddingBottom: 34 },
 
-  content: {
-    padding: 20,
-    paddingBottom: 34,
-  },
+  hero: { borderWidth: 1, borderRadius: 22, padding: 20, marginBottom: 16 },
+  kicker: { fontSize: 13, fontWeight: "800", marginBottom: 8 },
+  titulo: { fontSize: 30, fontWeight: "800", marginBottom: 8 },
+  subtitulo: { fontSize: 15, lineHeight: 22 },
 
-  hero: {
-    borderWidth: 1,
-    borderRadius: 22,
-    padding: 20,
-    marginBottom: 16,
-  },
-
-  kicker: {
-    fontSize: 13,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-
-  titulo: {
-    fontSize: 30,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-
-  subtitulo: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-
-  formCard: {
-    borderWidth: 1,
-    borderRadius: 22,
-    padding: 18,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginTop: 8,
-    marginBottom: 14,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
+  formCard: { borderWidth: 1, borderRadius: 22, padding: 18 },
+  sectionTitle: { fontSize: 18, fontWeight: "800", marginTop: 8, marginBottom: 14 },
+  label: { fontSize: 14, fontWeight: "700", marginBottom: 8 },
 
   input: {
-    borderWidth: 1,
-    marginBottom: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: 12,
-    fontSize: 16,
+    borderWidth: 1, marginBottom: 14, paddingHorizontal: 14,
+    paddingVertical: 13, borderRadius: 12, fontSize: 16,
   },
-
-  textArea: {
-    minHeight: 96,
-  },
+  textArea: { minHeight: 96 },
 
   chipGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 14,
+    flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14,
   },
-
   chip: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
+    borderWidth: 1, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 9,
   },
-
-  chipText: {
-    fontSize: 13,
-    fontWeight: "800",
-  },
+  chipText: { fontSize: 13, fontWeight: "800" },
 
   dateButton: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    marginBottom: 14,
+    borderWidth: 1, borderRadius: 12, paddingHorizontal: 14,
+    paddingVertical: 13, marginBottom: 14,
   },
+  dateButtonText: { fontSize: 15, fontWeight: "700" },
+  calendarWrap: { borderRadius: 12, overflow: "hidden", marginBottom: 14 },
 
-  dateButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
+  botao: { padding: 16, alignItems: "center", borderRadius: 14, marginTop: 6 },
+  botaoTexto: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
 
-  calendarWrap: {
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 14,
-  },
+  mapButton: { padding: 14, alignItems: "center", borderRadius: 12, marginBottom: 14 },
+  mapButtonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
 
-  botao: {
-    padding: 16,
-    alignItems: "center",
-    borderRadius: 14,
-    marginTop: 6,
-  },
-
-  botaoTexto: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-
-  mapButton: {
-    padding: 14,
-    alignItems: "center",
-    borderRadius: 12,
-    marginBottom: 14,
-  },
-
-  mapButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-
-  postoGroup: {
-    marginBottom: 14,
-  },
-
+  postoGroup: { marginBottom: 14 },
   postoCard: {
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 10,
   },
-
-  postoNome: {
-    fontSize: 15,
-    fontWeight: "800",
-    marginBottom: 4,
-  },
-
-  postoEndereco: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
+  postoNome: { fontSize: 15, fontWeight: "800", marginBottom: 4 },
+  postoEndereco: { fontSize: 13, lineHeight: 18 },
 });

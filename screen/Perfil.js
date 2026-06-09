@@ -1,5 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert, ScrollView,
+import {
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, Switch, Alert, ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -10,9 +12,10 @@ import firebase from '../firebaseConfig';
 export default function Perfil() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
+  const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
+
   const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
-  const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
   const [meusPedidos, setMeusPedidos] = useState([]);
 
   useEffect(() => {
@@ -60,9 +63,7 @@ export default function Perfil() {
       return;
     }
     try {
-    
       await user.updateEmail(email);
-    
       await firebase.firestore().collection('usuarios').doc(user.uid).set({
         email,
         atualizadoEm: new Date().toISOString(),
@@ -74,37 +75,22 @@ export default function Perfil() {
     }
   };
 
-  const recarregarPedidos = () => {
-    if (user) carregarPedidos();
-  };
-
   const borderColor = modoNoturno ? theme.border : "#111827";
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View
-          style={[
-            styles.profileCard,
-            { backgroundColor: theme.card, borderColor: "#111827" },
-          ]}
-        >
+        <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: "#111827" }]}>
           <TouchableOpacity activeOpacity={0.85} style={styles.avatar}>
             <Text style={styles.avatarText}>U</Text>
           </TouchableOpacity>
-
           <Text style={[styles.name, { color: theme.title }]}>Meu Perfil</Text>
           <Text style={[styles.subtitle, { color: theme.muted }]}>
             Gerencie suas informações e preferências.
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.optionCard,
-            { backgroundColor: theme.card, borderColor: "#111827" },
-          ]}
-        >
+        <View style={[styles.optionCard, { backgroundColor: theme.card, borderColor: "#111827" }]}>
           <View style={styles.optionHeader}>
             <View>
               <Text style={[styles.optionTitle, { color: theme.title }]}>E-mail</Text>
@@ -112,16 +98,12 @@ export default function Perfil() {
                 Endereço usado na sua conta
               </Text>
             </View>
-
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[
-                styles.smallButton,
-                {
-                  backgroundColor: theme.buttonSoft,
-                  borderColor: modoNoturno ? theme.border : "#111827",
-                },
-              ]}
+              style={[styles.smallButton, {
+                backgroundColor: theme.buttonSoft,
+                borderColor: modoNoturno ? theme.border : "#111827",
+              }]}
               onPress={editandoEmail ? salvarEmail : () => setEditandoEmail(true)}
             >
               <Text style={[styles.smallButtonText, { color: theme.buttonText }]}>
@@ -129,20 +111,14 @@ export default function Perfil() {
               </Text>
             </TouchableOpacity>
           </View>
-
           <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.input,
-                borderColor: modoNoturno
-                  ? editandoEmail
-                    ? theme.primary
-                    : theme.border
-                  : "#111827",
-                color: theme.title,
-              },
-            ]}
+            style={[styles.input, {
+              backgroundColor: theme.input,
+              borderColor: modoNoturno
+                ? editandoEmail ? theme.primary : theme.border
+                : "#111827",
+              color: theme.title,
+            }]}
             value={email}
             onChangeText={setEmail}
             editable={editandoEmail}
@@ -153,20 +129,15 @@ export default function Perfil() {
           />
         </View>
 
-        <View
-          style={[
-            styles.optionCard,
-            styles.rowCard,
-            { backgroundColor: theme.card, borderColor: "#111827" },
-          ]}
-        >
+        <View style={[styles.optionCard, styles.rowCard, {
+          backgroundColor: theme.card, borderColor: "#111827",
+        }]}>
           <View style={styles.optionText}>
             <Text style={[styles.optionTitle, { color: theme.title }]}>Modo noturno</Text>
             <Text style={[styles.optionSubtitle, { color: theme.muted }]}>
               Use cores mais escuras em todo o aplicativo
             </Text>
           </View>
-
           <Switch
             value={modoNoturno}
             onValueChange={setModoNoturno}
@@ -175,7 +146,6 @@ export default function Perfil() {
           />
         </View>
 
-    
         <View style={[styles.pedidosHeader, { borderColor }]}>
           <View>
             <Text style={[styles.pedidosTitulo, { color: theme.title }]}>Meus Pedidos</Text>
@@ -186,7 +156,7 @@ export default function Perfil() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={[styles.recarregarBtn, { backgroundColor: theme.primary }]}
-            onPress={recarregarPedidos}
+            onPress={() => user && carregarPedidos()}
           >
             <Text style={styles.recarregarBtnText}>Recarregar</Text>
           </TouchableOpacity>
@@ -194,9 +164,7 @@ export default function Perfil() {
 
         {meusPedidos.length === 0 ? (
           <View style={[styles.emptyBox, { backgroundColor: theme.cardAlt, borderColor }]}>
-            <Text style={[styles.emptyText, { color: theme.muted }]}>
-              Nenhum pedido encontrado
-            </Text>
+            <Text style={[styles.emptyText, { color: theme.muted }]}>Nenhum pedido encontrado</Text>
           </View>
         ) : (
           meusPedidos.map((p) => {
@@ -243,215 +211,62 @@ export default function Perfil() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  content: {
-    padding: 22,
-    paddingBottom: 34,
-  },
+  container: { flex: 1 },
+  content: { padding: 22, paddingBottom: 34 },
 
   profileCard: {
-    alignItems: "center",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    elevation: 3,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
+    alignItems: "center", borderRadius: 24, padding: 24, marginBottom: 16,
+    borderWidth: 1, elevation: 3, shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 18,
   },
-
   avatar: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    backgroundColor: "#2563EB",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-    borderWidth: 4,
-    borderColor: "#BFDBFE",
+    width: 104, height: 104, borderRadius: 52, backgroundColor: "#2563EB",
+    alignItems: "center", justifyContent: "center", marginBottom: 16,
+    borderWidth: 4, borderColor: "#BFDBFE",
   },
+  avatarText: { color: "#FFFFFF", fontSize: 42, fontWeight: "800" },
+  name: { fontSize: 26, fontWeight: "800", marginBottom: 6 },
+  subtitle: { fontSize: 15, textAlign: "center", lineHeight: 21 },
 
-  avatarText: {
-    color: "#FFFFFF",
-    fontSize: 42,
-    fontWeight: "800",
-  },
-
-  name: {
-    fontSize: 26,
-    fontWeight: "800",
-    marginBottom: 6,
-  },
-
-  subtitle: {
-    fontSize: 15,
-    textAlign: "center",
-    lineHeight: 21,
-  },
-
-  optionCard: {
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
-    borderWidth: 1,
-  },
-
+  optionCard: { borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1 },
   optionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-    gap: 12,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 14, gap: 12,
   },
+  optionTitle: { fontSize: 17, fontWeight: "800", marginBottom: 4 },
+  optionSubtitle: { fontSize: 13, lineHeight: 18 },
 
-  optionTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    marginBottom: 4,
-  },
-
-  optionSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-
-  smallButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-
-  smallButtonText: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
+  smallButton: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, borderWidth: 1 },
+  smallButtonText: { fontSize: 14, fontWeight: "800" },
 
   input: {
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    fontSize: 16,
+    borderWidth: 1, borderRadius: 14, paddingHorizontal: 14,
+    paddingVertical: 13, fontSize: 16,
   },
+  rowCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
+  optionText: { flex: 1 },
 
-  rowCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-  },
-
-  optionText: {
-    flex: 1,
-  },
-
-  logoutButton: {
-    padding: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 8,
-  },
-
-  logoutButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
-  },
+  logoutButton: { padding: 16, borderRadius: 14, alignItems: "center", marginTop: 8 },
+  logoutButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
 
   pedidosHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-    marginBottom: 14,
-    borderTopWidth: 1,
-    paddingTop: 18,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: 8, marginBottom: 14, borderTopWidth: 1, paddingTop: 18,
   },
+  pedidosTitulo: { fontSize: 19, fontWeight: "800" },
+  pedidosSub: { fontSize: 13, marginTop: 2 },
+  recarregarBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  recarregarBtnText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
 
-  pedidosTitulo: {
-    fontSize: 19,
-    fontWeight: "800",
-  },
+  emptyBox: { borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 14 },
+  emptyText: { fontSize: 14, fontWeight: "700", textAlign: "center" },
 
-  pedidosSub: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-
-  recarregarBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-
-  recarregarBtnText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-
-  emptyBox: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-  },
-
-  emptyText: {
-    fontSize: 14,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-
-  pedidoCard: {
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 10,
-  },
-
-  pedidoHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-
-  pedidoItem: {
-    fontSize: 16,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-
-  pedidoDetalhe: {
-    fontSize: 13,
-  },
-
-  statusBadge: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-
-  statusText: {
-    fontSize: 11,
-    fontWeight: "800",
-  },
-
-  pedidoInfo: {
-    fontSize: 13,
-    marginBottom: 2,
-  },
-
-  pedidoData: {
-    fontSize: 12,
-    marginTop: 4,
-  },
+  pedidoCard: { borderWidth: 1, borderRadius: 18, padding: 14, marginBottom: 10 },
+  pedidoHeader: { flexDirection: "row", alignItems: "flex-start", marginBottom: 8 },
+  pedidoItem: { fontSize: 16, fontWeight: "800", marginBottom: 2 },
+  pedidoDetalhe: { fontSize: 13 },
+  statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  statusText: { fontSize: 11, fontWeight: "800" },
+  pedidoInfo: { fontSize: 13, marginBottom: 2 },
+  pedidoData: { fontSize: 12, marginTop: 4 },
 });

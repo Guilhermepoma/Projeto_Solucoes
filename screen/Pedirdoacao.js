@@ -1,18 +1,15 @@
 import React, { useContext, useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, ScrollView, Alert,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
 import firebase from '../firebaseConfig';
 import { TemaContext } from "../TemaContext";
 import { AuthContext } from "../AuthContext";
+
+const opcoesEntrega = ["Entrego pessoalmente", "Retirada no local"];
 
 export default function PedirDoacao({ navigation }) {
   const { doacoes, atualizarStatus } = useContext(DoacoesContext);
@@ -21,6 +18,10 @@ export default function PedirDoacao({ navigation }) {
 
   const disponiveis = doacoes.filter((d) => d.status === "disponivel");
 
+  const [deliveryDates, setDeliveryDates] = useState({});
+  const [showCalendars, setShowCalendars] = useState({});
+  const [metodosEntrega, setMetodosEntrega] = useState({});
+  const [locaisEntrega, setLocaisEntrega] = useState({});
   const [statsPedidos, setStatsPedidos] = useState({ total: 0, aceitos: 0 });
 
   useEffect(() => {
@@ -42,11 +43,6 @@ export default function PedirDoacao({ navigation }) {
       console.error('Erro ao carregar stats:', error);
     }
   };
-
-  const [deliveryDates, setDeliveryDates] = useState({});
-  const [showCalendars, setShowCalendars] = useState({});
-  const [metodosEntrega, setMetodosEntrega] = useState({});
-  const [locaisEntrega, setLocaisEntrega] = useState({});
 
   const solicitar = async (id) => {
     atualizarStatus(id, "pendente_aprovacao_pedido");
@@ -76,7 +72,7 @@ export default function PedirDoacao({ navigation }) {
     }
   };
 
-  const opcoesEntrega = ["Entrego pessoalmente", "Retirada no local"];
+  const borderColor = modoNoturno ? theme.border : "#111827";
 
   return (
     <ScrollView
@@ -93,42 +89,22 @@ export default function PedirDoacao({ navigation }) {
       </View>
 
       <View style={styles.summaryRow}>
-        <View
-          style={[
-            styles.summaryCard,
-            { backgroundColor: theme.cardAlt, borderColor: modoNoturno ? theme.border : "#111827" },
-          ]}
-        >
+        <View style={[styles.summaryCard, { backgroundColor: theme.cardAlt, borderColor }]}>
           <Text style={[styles.summaryNumber, { color: theme.title }]}>{disponiveis.length}</Text>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>disponíveis agora</Text>
         </View>
-        <View
-          style={[
-            styles.summaryCard,
-            { backgroundColor: theme.cardAlt, borderColor: modoNoturno ? theme.border : "#111827" },
-          ]}
-        >
+        <View style={[styles.summaryCard, { backgroundColor: theme.cardAlt, borderColor }]}>
           <Text style={[styles.summaryNumber, { color: theme.success }]}>{statsPedidos.aceitos}</Text>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>pedidos aceitos</Text>
         </View>
-        <View
-          style={[
-            styles.summaryCard,
-            { backgroundColor: theme.cardAlt, borderColor: modoNoturno ? theme.border : "#111827" },
-          ]}
-        >
+        <View style={[styles.summaryCard, { backgroundColor: theme.cardAlt, borderColor }]}>
           <Text style={[styles.summaryNumber, { color: theme.title }]}>{statsPedidos.total}</Text>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>total pedidos</Text>
         </View>
       </View>
 
       {disponiveis.length === 0 && (
-        <View
-          style={[
-            styles.emptyCard,
-            { backgroundColor: theme.card, borderColor: modoNoturno ? theme.border : "#111827" },
-          ]}
-        >
+        <View style={[styles.emptyCard, { backgroundColor: theme.card, borderColor }]}>
           <Text style={styles.emptyIcon}>!</Text>
           <Text style={[styles.emptyTitle, { color: theme.title }]}>Nenhuma doação disponível</Text>
           <Text style={[styles.emptyText, { color: theme.muted }]}>
@@ -138,18 +114,11 @@ export default function PedirDoacao({ navigation }) {
       )}
 
       {disponiveis.map((d) => (
-        <View
-          key={d.id}
-          style={[
-            styles.card,
-            { backgroundColor: theme.card, borderColor: modoNoturno ? theme.border : "#111827" },
-          ]}
-        >
+        <View key={d.id} style={[styles.card, { backgroundColor: theme.card, borderColor }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.iconCircle, { backgroundColor: theme.success }]}>
               <Text style={styles.iconText}>+</Text>
             </View>
-
             <View style={styles.cardTitleWrap}>
               <Text style={[styles.itemTitle, { color: theme.title }]}>{d.item}</Text>
               <Text style={[styles.itemSubtitle, { color: theme.muted }]}>
@@ -161,29 +130,19 @@ export default function PedirDoacao({ navigation }) {
           <View style={styles.infoGrid}>
             <View style={[styles.infoBox, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Entrega</Text>
-              <Text style={[styles.infoValue, { color: theme.title }]}>
-                {d.entrega || "A combinar"}
-              </Text>
+              <Text style={[styles.infoValue, { color: theme.title }]}>{d.entrega || "A combinar"}</Text>
             </View>
-
             <View style={[styles.infoBox, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Contato</Text>
-              <Text style={[styles.infoValue, { color: theme.title }]}>
-                {d.contato || "Após aprovação"}
-              </Text>
+              <Text style={[styles.infoValue, { color: theme.title }]}>{d.contato || "Após aprovação"}</Text>
             </View>
           </View>
 
           {!!d.endereco && (
-            <Text style={[styles.detailText, { color: theme.text }]}>
-              Local: {d.endereco}
-            </Text>
+            <Text style={[styles.detailText, { color: theme.text }]}>Local: {d.endereco}</Text>
           )}
-
           {!!d.observacoes && (
-            <Text style={[styles.detailText, { color: theme.text }]}>
-              Observações: {d.observacoes}
-            </Text>
+            <Text style={[styles.detailText, { color: theme.text }]}>Observações: {d.observacoes}</Text>
           )}
 
           <Text style={[styles.sectionLabel, { color: theme.title }]}>Data de entrega</Text>
@@ -191,26 +150,19 @@ export default function PedirDoacao({ navigation }) {
             <TouchableOpacity
               activeOpacity={0.8}
               style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
-              onPress={() =>
-                setShowCalendars((prev) => ({ ...prev, [d.id]: !prev[d.id] }))
-              }
+              onPress={() => setShowCalendars((prev) => ({ ...prev, [d.id]: !prev[d.id] }))}
             >
-              <Text style={[styles.dateButtonText, { color: theme.title }]}>
-                {deliveryDates[d.id]}
-              </Text>
+              <Text style={[styles.dateButtonText, { color: theme.title }]}>{deliveryDates[d.id]}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               activeOpacity={0.8}
               style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
-              onPress={() =>
-                setShowCalendars((prev) => ({ ...prev, [d.id]: true }))
-              }
+              onPress={() => setShowCalendars((prev) => ({ ...prev, [d.id]: true }))}
             >
               <Text style={{ color: theme.muted }}>Selecionar data</Text>
             </TouchableOpacity>
           )}
-
           {showCalendars[d.id] && (
             <View style={styles.calendarWrap}>
               <Calendar
@@ -248,12 +200,10 @@ export default function PedirDoacao({ navigation }) {
                   styles.chip,
                   {
                     backgroundColor: metodosEntrega[d.id] === opcao ? theme.primary : theme.cardAlt,
-                    borderColor: metodosEntrega[d.id] === opcao ? theme.primary : modoNoturno ? theme.border : "#111827",
+                    borderColor: metodosEntrega[d.id] === opcao ? theme.primary : borderColor,
                   },
                 ]}
-                onPress={() =>
-                  setMetodosEntrega((prev) => ({ ...prev, [d.id]: opcao }))
-                }
+                onPress={() => setMetodosEntrega((prev) => ({ ...prev, [d.id]: opcao }))}
               >
                 <Text
                   style={[
@@ -269,20 +219,13 @@ export default function PedirDoacao({ navigation }) {
 
           {metodosEntrega[d.id] === "Retirada no local" && (
             <>
-              <Text style={[styles.sectionLabel, { color: theme.title }]}>
-                Local para retirada *
-              </Text>
+              <Text style={[styles.sectionLabel, { color: theme.title }]}>Local para retirada *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.input, borderColor: modoNoturno ? theme.border : "#111827", color: theme.title },
-                ]}
+                style={[styles.input, { backgroundColor: theme.input, borderColor, color: theme.title }]}
                 placeholder="Bairro, rua, ponto de referência..."
                 placeholderTextColor={theme.muted}
                 value={locaisEntrega[d.id] || ""}
-                onChangeText={(text) =>
-                  setLocaisEntrega((prev) => ({ ...prev, [d.id]: text }))
-                }
+                onChangeText={(text) => setLocaisEntrega((prev) => ({ ...prev, [d.id]: text }))}
               />
             </>
           )}
@@ -309,236 +252,67 @@ export default function PedirDoacao({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  content: { padding: 20, paddingBottom: 34 },
 
-  content: {
-    padding: 20,
-    paddingBottom: 34,
-  },
+  hero: { borderWidth: 1, borderRadius: 22, padding: 20, marginBottom: 14 },
+  kicker: { fontSize: 13, fontWeight: "800", marginBottom: 8 },
+  titulo: { fontSize: 29, fontWeight: "800", marginBottom: 8 },
+  subtitulo: { fontSize: 15, lineHeight: 22 },
 
-  hero: {
-    borderWidth: 1,
-    borderRadius: 22,
-    padding: 20,
-    marginBottom: 14,
-  },
-
-  kicker: {
-    fontSize: 13,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-
-  titulo: {
-    fontSize: 29,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-
-  subtitulo: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-
-  summaryRow: {
-    marginBottom: 14,
-  },
-
-  summaryCard: {
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-  },
-
-  summaryNumber: {
-    fontSize: 28,
-    fontWeight: "800",
-  },
-
-  summaryLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
+  summaryRow: { flexDirection: "row", gap: 10, marginBottom: 14 },
+  summaryCard: { flex: 1, borderWidth: 1, borderRadius: 18, padding: 16 },
+  summaryNumber: { fontSize: 28, fontWeight: "800" },
+  summaryLabel: { fontSize: 14, fontWeight: "700" },
 
   emptyCard: {
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 24,
-    marginTop: 6,
+    alignItems: "center", borderWidth: 1, borderRadius: 20,
+    padding: 24, marginTop: 6,
   },
-
   emptyIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "#FACC15",
-    color: "#111827",
-    textAlign: "center",
-    textAlignVertical: "center",
-    fontSize: 26,
-    fontWeight: "900",
-    marginBottom: 12,
+    width: 46, height: 46, borderRadius: 23, backgroundColor: "#FACC15",
+    color: "#111827", textAlign: "center", textAlignVertical: "center",
+    fontSize: 26, fontWeight: "900", marginBottom: 12,
   },
+  emptyTitle: { fontSize: 18, fontWeight: "800", marginBottom: 6, textAlign: "center" },
+  emptyText: { fontSize: 14, lineHeight: 20, textAlign: "center" },
 
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 6,
-    textAlign: "center",
-  },
-
-  emptyText: {
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-  },
-
-  card: {
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 14,
-    borderWidth: 1,
-  },
-
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-
+  card: { padding: 16, borderRadius: 20, marginBottom: 14, borderWidth: 1 },
+  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: "center", justifyContent: "center", marginRight: 12,
   },
+  iconText: { color: "#FFFFFF", fontSize: 24, fontWeight: "900" },
+  cardTitleWrap: { flex: 1 },
+  itemTitle: { fontSize: 19, fontWeight: "800", marginBottom: 4 },
+  itemSubtitle: { fontSize: 14, fontWeight: "700" },
 
-  iconText: {
-    color: "#FFFFFF",
-    fontSize: 24,
-    fontWeight: "900",
-  },
+  infoGrid: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  infoBox: { flex: 1, borderWidth: 1, borderRadius: 14, padding: 12 },
+  infoLabel: { fontSize: 12, fontWeight: "800", marginBottom: 5 },
+  infoValue: { fontSize: 14, fontWeight: "800" },
 
-  cardTitleWrap: {
-    flex: 1,
-  },
-
-  itemTitle: {
-    fontSize: 19,
-    fontWeight: "800",
-    marginBottom: 4,
-  },
-
-  itemSubtitle: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  infoGrid: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
-
-  infoBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
-  },
-
-  infoLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    marginBottom: 5,
-  },
-
-  infoValue: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
-
-  detailText: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: "800",
-    marginBottom: 8,
-    marginTop: 6,
-  },
+  detailText: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
+  sectionLabel: { fontSize: 14, fontWeight: "800", marginBottom: 8, marginTop: 6 },
 
   dateButton: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    marginBottom: 14,
+    borderWidth: 1, borderRadius: 12, paddingHorizontal: 14,
+    paddingVertical: 13, marginBottom: 14,
   },
+  dateButtonText: { fontSize: 15, fontWeight: "700" },
+  calendarWrap: { borderRadius: 12, overflow: "hidden", marginBottom: 14 },
 
-  dateButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-
-  calendarWrap: {
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 14,
-  },
-
-  chipGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 14,
-  },
-
-  chip: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-  },
-
-  chipText: {
-    fontSize: 13,
-    fontWeight: "800",
-  },
+  chipGroup: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
+  chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 9 },
+  chipText: { fontSize: 13, fontWeight: "800" },
 
   input: {
-    borderWidth: 1,
-    marginBottom: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: 12,
-    fontSize: 16,
+    borderWidth: 1, marginBottom: 14, paddingHorizontal: 14,
+    paddingVertical: 13, borderRadius: 12, fontSize: 16,
   },
 
-  botao: {
-    padding: 13,
-    marginTop: 6,
-    borderRadius: 12,
-  },
-
-  voltar: {
-    padding: 13,
-    marginTop: 6,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-
-  txt: {
-    color: "#FFFFFF",
-    textAlign: "center",
-    fontWeight: "800",
-  },
+  botao: { padding: 13, marginTop: 6, borderRadius: 12 },
+  voltar: { padding: 13, marginTop: 6, borderRadius: 12, alignItems: "center" },
+  txt: { color: "#FFFFFF", textAlign: "center", fontWeight: "800" },
 });

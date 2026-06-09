@@ -1,24 +1,11 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Animated,
-  Modal,
-} from "react-native";
+import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Animated, Modal,} from "react-native";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
 const ABAS = ["Pendentes", "Histórico"];
 const CATEGORIAS_FILTRO = ["Todas", "Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
-const MOTIVOS_RECUSA = [
-  "Item inadequado",
-  "Informações incompletas",
-  "Outro",
-];
+const MOTIVOS_RECUSA = ["Item inadequado", "Informações incompletas", "Outro"];
 
 export default function Adm({ navigation }) {
   const { doacoes, atualizarStatus } = useContext(DoacoesContext);
@@ -26,26 +13,20 @@ export default function Adm({ navigation }) {
 
   const [abaSelecionada, setAbaSelecionada] = useState("Pendentes");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
-
-
   const [ultimaAcao, setUltimaAcao] = useState(null);
   const [mostrarUndo, setMostrarUndo] = useState(false);
+  const [modalRecusa, setModalRecusa] = useState({ visible: false, doacao: null });
+
   const undoOpacity = useRef(new Animated.Value(0)).current;
   const undoTimer = useRef(null);
 
-  const [modalRecusa, setModalRecusa] = useState({ visible: false, doacao: null });
-
   const borderColor = modoNoturno ? theme.border : "#111827";
-
-
 
   const doacoesPendentes = doacoes.filter((d) => d.status === "pendente_aprovacao_doacao");
   const pedidosPendentes = doacoes.filter((d) => d.status === "pendente_aprovacao_pedido");
-
   const historico = doacoes.filter((d) =>
     ["finalizado", "recusado", "disponivel"].includes(d.status)
   );
-
   const historicoFiltrado =
     filtroCategoria === "Todas"
       ? historico
@@ -66,32 +47,29 @@ export default function Adm({ navigation }) {
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {});
-
   const categoriasOrdenadas = Object.entries(contagemCategorias).sort((a, b) => b[1] - a[1]);
   const itemMaisDoado = categoriasOrdenadas[0]?.[0] || "—";
   const maxContagem = categoriasOrdenadas[0]?.[1] || 1;
 
- 
+  const statusConfig = {
+    finalizado: { label: "Finalizado", cor: theme.success },
+    recusado: { label: "Recusado", cor: theme.danger },
+    disponivel: { label: "Disponível", cor: theme.primary },
+  };
 
   const mostrarToastUndo = (id, statusAnterior, statusNovo) => {
     if (undoTimer.current) clearTimeout(undoTimer.current);
     setUltimaAcao({ id, statusAnterior, statusNovo });
     setMostrarUndo(true);
-
     Animated.timing(undoOpacity, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
+      toValue: 1, duration: 250, useNativeDriver: true,
     }).start();
-
     undoTimer.current = setTimeout(esconderToastUndo, 4000);
   };
 
   const esconderToastUndo = () => {
     Animated.timing(undoOpacity, {
-      toValue: 0,
-      duration: 250,
-      useNativeDriver: true,
+      toValue: 0, duration: 250, useNativeDriver: true,
     }).start(() => {
       setMostrarUndo(false);
       setUltimaAcao(null);
@@ -110,8 +88,6 @@ export default function Adm({ navigation }) {
       if (undoTimer.current) clearTimeout(undoTimer.current);
     };
   }, []);
-
-  
 
   const aprovar = (d, tipo) => {
     const statusAnterior = d.status;
@@ -133,26 +109,15 @@ export default function Adm({ navigation }) {
     setModalRecusa({ visible: false, doacao: null });
   };
 
-
-
   const renderVazio = (texto) => (
     <View style={[styles.emptyBox, { backgroundColor: theme.cardAlt, borderColor }]}>
       <Text style={[styles.emptyText, { color: theme.muted }]}>{texto}</Text>
     </View>
   );
 
-  const statusConfig = {
-    finalizado: { label: "Finalizado", cor: theme.success },
-    recusado: { label: "Recusado", cor: theme.danger },
-    disponivel: { label: "Disponível", cor: theme.primary },
-  };
-
-
-
   const renderCardPendente = (d, tipo) => {
     const isDoacao = tipo === "doacao";
     const etiqueta = isDoacao ? "Nova doação" : "Pedido de retirada";
-
     return (
       <View key={d.id} style={[styles.card, { backgroundColor: theme.card, borderColor }]}>
         <View style={styles.cardHeader}>
@@ -162,7 +127,6 @@ export default function Adm({ navigation }) {
             <Text style={[styles.cardTitle, { color: theme.title }]}>{d.item}</Text>
           </View>
         </View>
-
         <View style={styles.infoGrid}>
           <View style={[styles.infoBox, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}>
             <Text style={[styles.infoLabel, { color: theme.muted }]}>Quantidade</Text>
@@ -173,7 +137,6 @@ export default function Adm({ navigation }) {
             <Text style={[styles.infoValue, { color: theme.title }]}>{d.categoria || "Doação"}</Text>
           </View>
         </View>
-
         <View style={styles.metaList}>
           <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
           <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
@@ -181,7 +144,6 @@ export default function Adm({ navigation }) {
           {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
           {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
         </View>
-
         <View style={styles.row}>
           <TouchableOpacity
             activeOpacity={0.85}
@@ -204,7 +166,6 @@ export default function Adm({ navigation }) {
 
   const renderCardHistorico = (d) => {
     const config = statusConfig[d.status] || { label: d.status, cor: theme.muted };
-
     return (
       <View key={d.id} style={[styles.card, { backgroundColor: theme.card, borderColor }]}>
         <View style={styles.cardHeader}>
@@ -219,9 +180,7 @@ export default function Adm({ navigation }) {
             <Text style={[styles.statusBadgeText, { color: config.cor }]}>{config.label}</Text>
           </View>
         </View>
-
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
         <View style={styles.metaList}>
           <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
           <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
@@ -235,23 +194,17 @@ export default function Adm({ navigation }) {
     );
   };
 
-
-
   const renderGrafico = () => {
     if (categoriasOrdenadas.length === 0) return renderVazio("Nenhum dado para o gráfico");
-
     const cores = [theme.primary, theme.success, theme.admin, "#F59E0B", theme.danger, theme.muted];
-
     return (
       <View style={[styles.graficoCard, { backgroundColor: theme.card, borderColor }]}>
         <Text style={[styles.graficoTitulo, { color: theme.title }]}>Doações por categoria</Text>
         <Text style={[styles.graficoSub, { color: theme.muted }]}>Total de registros no sistema</Text>
-
         <View style={styles.graficoLista}>
           {categoriasOrdenadas.map(([categoria, total], index) => {
             const porcentagem = (total / maxContagem) * 100;
             const cor = cores[index % cores.length];
-
             return (
               <View key={categoria} style={styles.graficoItem}>
                 <View style={styles.graficoLabelRow}>
@@ -269,8 +222,6 @@ export default function Adm({ navigation }) {
     );
   };
 
-
-
   const renderAbaPendentes = () => (
     <>
       <View style={styles.statsRow}>
@@ -283,7 +234,6 @@ export default function Adm({ navigation }) {
           <Text style={[styles.statLabel, { color: theme.muted }]}>pedidos</Text>
         </View>
       </View>
-
       <View style={styles.sectionHeader}>
         <Text style={[styles.sub, { color: theme.title }]}>Doações Pendentes</Text>
         <Text style={[styles.badge, { color: theme.primary }]}>{doacoesPendentes.length}</Text>
@@ -291,7 +241,6 @@ export default function Adm({ navigation }) {
       {doacoesPendentes.length === 0
         ? renderVazio("Nenhuma doação aguardando aprovação")
         : doacoesPendentes.map((d) => renderCardPendente(d, "doacao"))}
-
       <View style={styles.sectionHeader}>
         <Text style={[styles.sub, { color: theme.title }]}>Pedidos Pendentes</Text>
         <Text style={[styles.badge, { color: theme.success }]}>{pedidosPendentes.length}</Text>
@@ -301,8 +250,6 @@ export default function Adm({ navigation }) {
         : pedidosPendentes.map((d) => renderCardPendente(d, "pedido"))}
     </>
   );
-
-
 
   const renderAbaHistorico = () => (
     <>
@@ -320,8 +267,6 @@ export default function Adm({ navigation }) {
           <Text style={[styles.statLabel, { color: theme.muted }]}>recusados</Text>
         </View>
       </View>
-
-     
       <View style={styles.statsRow}>
         <View style={[styles.insightCard, { backgroundColor: theme.cardAlt, borderColor }]}>
           <Text style={[styles.insightLabel, { color: theme.muted }]}>Taxa de aprovação</Text>
@@ -334,15 +279,11 @@ export default function Adm({ navigation }) {
           </Text>
         </View>
       </View>
-
-  
       {renderGrafico()}
-
       <View style={styles.sectionHeader}>
         <Text style={[styles.sub, { color: theme.title }]}>Movimentações</Text>
         <Text style={[styles.badge, { color: theme.muted }]}>{historicoFiltrado.length}</Text>
       </View>
-
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -355,13 +296,10 @@ export default function Adm({ navigation }) {
             <TouchableOpacity
               key={cat}
               activeOpacity={0.8}
-              style={[
-                styles.filtroChip,
-                {
-                  backgroundColor: ativo ? theme.admin : theme.cardAlt,
-                  borderColor: ativo ? theme.admin : borderColor,
-                },
-              ]}
+              style={[styles.filtroChip, {
+                backgroundColor: ativo ? theme.admin : theme.cardAlt,
+                borderColor: ativo ? theme.admin : borderColor,
+              }]}
               onPress={() => setFiltroCategoria(cat)}
             >
               <Text style={[styles.filtroChipText, { color: ativo ? "#FFFFFF" : theme.muted }]}>
@@ -371,14 +309,11 @@ export default function Adm({ navigation }) {
           );
         })}
       </ScrollView>
-
       {historicoFiltrado.length === 0
         ? renderVazio("Nenhuma movimentação nesta categoria")
         : historicoFiltrado.map((d) => renderCardHistorico(d))}
     </>
   );
-
- 
 
   return (
     <View style={{ flex: 1 }}>
@@ -393,7 +328,6 @@ export default function Adm({ navigation }) {
             Aprove doações, revise pedidos e acompanhe o histórico.
           </Text>
         </View>
-
 
         <View style={[styles.tabsContainer, { backgroundColor: theme.cardAlt, borderColor }]}>
           {ABAS.map((aba) => {
@@ -428,13 +362,9 @@ export default function Adm({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      
       {mostrarUndo && (
         <Animated.View
-          style={[
-            styles.undoToast,
-            { backgroundColor: theme.card, borderColor, opacity: undoOpacity },
-          ]}
+          style={[styles.undoToast, { backgroundColor: theme.card, borderColor, opacity: undoOpacity }]}
         >
           <Text style={[styles.undoTexto, { color: theme.text }]}>Ação realizada</Text>
           <TouchableOpacity
@@ -447,7 +377,6 @@ export default function Adm({ navigation }) {
         </Animated.View>
       )}
 
-      
       <Modal
         visible={modalRecusa.visible}
         transparent
@@ -492,21 +421,12 @@ const styles = StyleSheet.create({
   subtitulo: { fontSize: 15, lineHeight: 22 },
 
   tabsContainer: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 4,
-    marginBottom: 18,
-    gap: 4,
+    flexDirection: "row", borderWidth: 1, borderRadius: 16,
+    padding: 4, marginBottom: 18, gap: 4,
   },
   tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
+    flex: 1, flexDirection: "row", alignItems: "center",
+    justifyContent: "center", paddingVertical: 10, borderRadius: 12, gap: 6,
   },
   tabText: { fontSize: 14, fontWeight: "800" },
   tabBadge: { borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
@@ -538,11 +458,8 @@ const styles = StyleSheet.create({
   filtroChipText: { fontSize: 13, fontWeight: "800" },
 
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 4,
-    marginBottom: 10,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: 4, marginBottom: 10,
   },
   sub: { fontSize: 19, fontWeight: "800" },
   badge: { fontSize: 16, fontWeight: "900" },
@@ -558,13 +475,8 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 19, fontWeight: "900" },
 
   statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    gap: 5,
+    flexDirection: "row", alignItems: "center", borderWidth: 1,
+    borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, gap: 5,
   },
   statusDotSmall: { width: 7, height: 7, borderRadius: 4 },
   statusBadgeText: { fontSize: 12, fontWeight: "800" },
@@ -574,81 +486,34 @@ const styles = StyleSheet.create({
   infoBox: { flex: 1, borderWidth: 1, borderRadius: 14, padding: 12 },
   infoLabel: { fontSize: 12, fontWeight: "800", marginBottom: 5 },
   infoValue: { fontSize: 14, fontWeight: "800" },
-
   metaList: { marginBottom: 10 },
   metaText: { fontSize: 14, lineHeight: 21 },
 
   row: { flexDirection: "row", justifyContent: "space-between", marginTop: 6, gap: 10 },
   actionButton: { flex: 1, padding: 12, borderRadius: 10 },
-
   voltar: { padding: 13, marginTop: 8, borderRadius: 12, alignItems: "center" },
   txt: { color: "#FFFFFF", textAlign: "center", fontWeight: "800" },
 
   undoToast: {
-    position: "absolute",
-    bottom: 28,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    position: "absolute", bottom: 28, left: 20, right: 20,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12,
+    elevation: 10, shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
   undoTexto: { fontSize: 14, fontWeight: "700" },
   undoBotao: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
   undoBotaoTexto: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
 
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center", alignItems: "center", padding: 24,
   },
-  modalContent: {
-    width: "100%",
-    borderWidth: 1,
-    borderRadius: 22,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    marginBottom: 4,
-  },
-  modalSub: {
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-  modalOption: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  modalOptionText: {
-    fontSize: 15,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  modalCancel: {
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 4,
-    alignItems: "center",
-  },
-  modalCancelText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
+  modalContent: { width: "100%", borderWidth: 1, borderRadius: 22, padding: 20 },
+  modalTitle: { fontSize: 20, fontWeight: "900", marginBottom: 4 },
+  modalSub: { fontSize: 14, fontWeight: "700", marginBottom: 16 },
+  modalOption: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 8 },
+  modalOptionText: { fontSize: 15, fontWeight: "800", textAlign: "center" },
+  modalCancel: { borderWidth: 0, borderRadius: 12, padding: 14, marginTop: 4, alignItems: "center" },
+  modalCancelText: { fontSize: 14, fontWeight: "700" },
 });
