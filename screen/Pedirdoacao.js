@@ -1,6 +1,14 @@
-import React, { useContext } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView,
+import React, { useContext, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
 } from "react-native";
+import { Calendar } from "react-native-calendars";
 import { DoacoesContext } from "../DoacoesContext";
 import firebase from '../firebaseConfig';
 import { TemaContext } from "../TemaContext";
@@ -11,6 +19,11 @@ export default function PedirDoacao({ navigation }) {
 
   const disponiveis = doacoes.filter((d) => d.status === "disponivel");
 
+  const [deliveryDates, setDeliveryDates] = useState({});
+  const [showCalendars, setShowCalendars] = useState({});
+  const [metodosEntrega, setMetodosEntrega] = useState({});
+  const [locaisEntrega, setLocaisEntrega] = useState({});
+
   const solicitar = async (id) => {
     atualizarStatus(id, "pendente_aprovacao_pedido");
     try {
@@ -18,17 +31,23 @@ export default function PedirDoacao({ navigation }) {
         doacaoId: id,
         solicitadoEm: new Date().toISOString(),
         status: 'pendente_aprovacao_pedido',
-       
+        dataEntrega: deliveryDates[id] || null,
+        metodoEntrega: metodosEntrega[id] || "Entrego pessoalmente",
+        localEntrega: locaisEntrega[id] || "",
       });
     } catch (error) {
       console.error('Erro ao salvar pedido no Firestore:', error);
+      Alert.alert("Erro", "Não foi possível solicitar a doação. Verifique sua conexão e tente novamente.");
     }
   };
+
+  const opcoesEntrega = [" pessoalmente", "Retirada no local"];
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <Text style={[styles.kicker, { color: theme.success }]}>Solicitar ajuda</Text>
@@ -112,6 +131,107 @@ export default function PedirDoacao({ navigation }) {
             <Text style={[styles.detailText, { color: theme.text }]}>
               Observações: {d.observacoes}
             </Text>
+          )}
+
+          <Text style={[styles.sectionLabel, { color: theme.title }]}>Data de entrega</Text>
+          {deliveryDates[d.id] ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+              onPress={() =>
+                setShowCalendars((prev) => ({ ...prev, [d.id]: !prev[d.id] }))
+              }
+            >
+              <Text style={[styles.dateButtonText, { color: theme.title }]}>
+                {deliveryDates[d.id]}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.dateButton, { backgroundColor: theme.cardAlt, borderColor: theme.border }]}
+              onPress={() =>
+                setShowCalendars((prev) => ({ ...prev, [d.id]: true }))
+              }
+            >
+              <Text style={{ color: theme.muted }}>Selecionar data</Text>
+            </TouchableOpacity>
+          )}
+
+          {showCalendars[d.id] && (
+            <View style={styles.calendarWrap}>
+              <Calendar
+                theme={{
+                  backgroundColor: theme.card,
+                  calendarBackground: theme.card,
+                  dayTextColor: theme.title,
+                  monthTextColor: theme.title,
+                  arrowColor: theme.primary,
+                  todayTextColor: theme.primary,
+                  selectedDayBackgroundColor: theme.primary,
+                  selectedDayTextColor: "#FFFFFF",
+                  textSectionTitleColor: theme.muted,
+                }}
+                onDayPress={(day) => {
+                  setDeliveryDates((prev) => ({ ...prev, [d.id]: day.dateString }));
+                  setShowCalendars((prev) => ({ ...prev, [d.id]: false }));
+                }}
+                markedDates={
+                  deliveryDates[d.id]
+                    ? { [deliveryDates[d.id]]: { selected: true, selectedColor: theme.primary } }
+                    : {}
+                }
+              />
+            </View>
+          )}
+
+          <Text style={[styles.sectionLabel, { color: theme.title }]}>Método de entrega</Text>
+          <View style={styles.chipGroup}>
+            {opcoesEntrega.map((opcao) => (
+              <TouchableOpacity
+                key={opcao}
+                activeOpacity={0.8}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: metodosEntrega[d.id] === opcao ? theme.primary : theme.cardAlt,
+                    borderColor: metodosEntrega[d.id] === opcao ? theme.primary : modoNoturno ? theme.border : "#111827",
+                  },
+                ]}
+                onPress={() =>
+                  setMetodosEntrega((prev) => ({ ...prev, [d.id]: opcao }))
+                }
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    { color: metodosEntrega[d.id] === opcao ? "#FFFFFF" : theme.title },
+                  ]}
+                >
+                  {opcao}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {metodosEntrega[d.id] === "Retirada no local" && (
+            <>
+              <Text style={[styles.sectionLabel, { color: theme.title }]}>
+                Local para retirada *
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: theme.input, borderColor: modoNoturno ? theme.border : "#111827", color: theme.title },
+                ]}
+                placeholder="Bairro, rua, ponto de referência..."
+                placeholderTextColor={theme.muted}
+                value={locaisEntrega[d.id] || ""}
+                onChangeText={(text) =>
+                  setLocaisEntrega((prev) => ({ ...prev, [d.id]: text }))
+                }
+              />
+            </>
           )}
 
           <TouchableOpacity
@@ -294,6 +414,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,
+  },
+
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 8,
+    marginTop: 6,
+  },
+
+  dateButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    marginBottom: 14,
+  },
+
+  dateButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  calendarWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 14,
+  },
+
+  chipGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  chip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+
+  chipText: {
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  input: {
+    borderWidth: 1,
+    marginBottom: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 12,
+    fontSize: 16,
   },
 
   botao: {
