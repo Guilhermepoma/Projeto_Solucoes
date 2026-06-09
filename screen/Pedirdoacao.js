@@ -161,6 +161,7 @@ export default function PedirDoacao({ navigation }) {
           {showCalendars[d.id] && (
             <View style={styles.calendarWrap}>
               <Calendar
+                minDate={new Date().toISOString().split("T")[0]}
                 theme={{
                   backgroundColor: theme.card,
                   calendarBackground: theme.card,
