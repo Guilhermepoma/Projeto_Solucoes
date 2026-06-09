@@ -55,7 +55,7 @@ function Rotas() {
                 style={[styles.headerAvatar, { backgroundColor: theme.primary }]}
                 onPress={() => navigation.navigate("Perfil")}
               >
-                <Text style={styles.headerAvatarText}>U</Text>
+                <Text style={styles.headerAvatarText}>{user?.email?.charAt(0).toUpperCase() || "U"}</Text>
               </TouchableOpacity>
             ),
           })}
