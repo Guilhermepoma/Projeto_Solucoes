@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "projeto_mari_cest-Basica",
-    "slug": "projeto_mari_cest-Basica",
+    "name": "DoaFacil",
+    "slug": "DoaFacil",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -30,6 +30,7 @@
       "eas": {
         "projectId": "ee236f7d-391c-4d96-a6de-09c015dbd45c"
       }
-    }
+    },
+    "owner": "guilhermepomacercena"
   }
 }
