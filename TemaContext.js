@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 export const TemaContext = createContext();
 
@@ -41,7 +41,7 @@ const temaEscuro = {
   header: "#1E293B",
 };
 
-const CHAVE_TEMA = "@modo_noturno";
+const CHAVE_TEMA = "modo_noturno";
 
 export function TemaProvider({ children }) {
   const [modoNoturno, setModoNoturno] = useState(false);
@@ -50,7 +50,7 @@ export function TemaProvider({ children }) {
   useEffect(() => {
     (async () => {
       try {
-        const valor = await AsyncStorage.getItem(CHAVE_TEMA);
+        const valor = await SecureStore.getItemAsync(CHAVE_TEMA);
         if (valor === "true") setModoNoturno(true);
       } catch (e) {
         console.error("Erro ao carregar tema:", e);
@@ -62,7 +62,7 @@ export function TemaProvider({ children }) {
   const alternarTema = async (valor) => {
     setModoNoturno(valor);
     try {
-      await AsyncStorage.setItem(CHAVE_TEMA, String(valor));
+      await SecureStore.setItemAsync(CHAVE_TEMA, String(valor));
     } catch (e) {
       console.error("Erro ao salvar tema:", e);
     }

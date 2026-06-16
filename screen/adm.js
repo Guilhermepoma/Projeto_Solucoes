@@ -8,12 +8,13 @@ import {
   Alert,
   Animated,
   Modal,
+  Image,
 } from "react-native";
 import { DoacoesContext } from "../DoacoesContext";
 import { TemaContext } from "../TemaContext";
 
 const ABAS = ["Pendentes", "Histórico"];
-const CATEGORIAS_FILTRO = ["Todas", "Cesta básica", "Alimentos", "Higiene", "Limpeza", "Outros"];
+const CATEGORIAS_FILTRO = ["Todas", "Cesta básica", "Alimentos", "Higiene", "Limpeza", "Pagamento por PIX", "Outros"];
 const MOTIVOS_RECUSA = [
   "Item inadequado",
   "Informações incompletas",
@@ -34,6 +35,7 @@ export default function Adm({ navigation }) {
   const undoTimer = useRef(null);
 
   const [modalRecusa, setModalRecusa] = useState({ visible: false, doacao: null });
+  const [modalComprovante, setModalComprovante] = useState(null);
 
   const borderColor = modoNoturno ? theme.border : "#111827";
 
@@ -175,11 +177,27 @@ export default function Adm({ navigation }) {
         </View>
 
         <View style={styles.metaList}>
-          <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
-          <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
-          {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
-          {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
+          {isDoacao ? (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Doador: {d.nome || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Contato: {d.contato || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
+              {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
+              {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
+              {!!d.comprovanteBase64 && (
+                <TouchableOpacity onPress={() => setModalComprovante(d.comprovanteBase64)} style={styles.comprovanteLink}>
+                  <Text style={[styles.comprovanteLinkText, { color: theme.primary }]}>Ver comprovante</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            <>
+              <Text style={[styles.metaText, { color: theme.text }]}>Solicitante: {d.solicitanteEmail || "Não informado"}</Text>
+              <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.solicitanteMetodo || "A combinar"}</Text>
+              {!!d.solicitanteData && <Text style={[styles.metaText, { color: theme.text }]}>Data: {d.solicitanteData}</Text>}
+              {!!d.solicitanteLocal && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.solicitanteLocal}</Text>}
+            </>
+          )}
         </View>
 
         <View style={styles.row}>
@@ -229,6 +247,11 @@ export default function Adm({ navigation }) {
           {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
           {!!d.motivoRecusa && (
             <Text style={[styles.metaText, { color: theme.danger }]}>Motivo recusa: {d.motivoRecusa}</Text>
+          )}
+          {!!d.comprovanteBase64 && (
+            <TouchableOpacity onPress={() => setModalComprovante(d.comprovanteBase64)} style={styles.comprovanteLink}>
+              <Text style={[styles.comprovanteLinkText, { color: theme.primary }]}>Ver comprovante</Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -478,6 +501,33 @@ export default function Adm({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={!!modalComprovante}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalComprovante(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor, alignItems: "center" }]}>
+            <Text style={[styles.modalTitle, { color: theme.title }]}>Comprovante</Text>
+            {modalComprovante && (
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${modalComprovante}` }}
+                style={styles.comprovanteImagem}
+                resizeMode="contain"
+              />
+            )}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.modalCancel, { borderColor }]}
+              onPress={() => setModalComprovante(null)}
+            >
+              <Text style={[styles.modalCancelText, { color: theme.muted }]}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -577,6 +627,14 @@ const styles = StyleSheet.create({
 
   metaList: { marginBottom: 10 },
   metaText: { fontSize: 14, lineHeight: 21 },
+  comprovanteLink: { marginTop: 8 },
+  comprovanteLinkText: { fontSize: 14, fontWeight: "800" },
+  comprovanteImagem: {
+    width: "100%",
+    height: 300,
+    borderRadius: 12,
+    marginVertical: 16,
+  },
 
   row: { flexDirection: "row", justifyContent: "space-between", marginTop: 6, gap: 10 },
   actionButton: { flex: 1, padding: 12, borderRadius: 10 },

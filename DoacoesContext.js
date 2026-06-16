@@ -7,17 +7,18 @@ export const DoacoesContext = createContext();
 export function DoacoesProvider({ children }) {
   const [doacoes, setDoacoes] = useState([]);
 
+  const carregarDoacoes = async () => {
+    try {
+      const snapshot = await firebase.firestore().collection('doacoes').get();
+      const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      lista.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+      setDoacoes(lista);
+    } catch (error) {
+      console.error('Erro ao carregar doações:', error);
+    }
+  };
+
   useEffect(() => {
-    const carregarDoacoes = async () => {
-      try {
-        const snapshot = await firebase.firestore().collection('doacoes').get();
-        const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        lista.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-        setDoacoes(lista);
-      } catch (error) {
-        console.error('Erro ao carregar doações:', error);
-      }
-    };
     carregarDoacoes();
   }, []);
 
@@ -31,6 +32,7 @@ export function DoacoesProvider({ children }) {
       const docRef = await firebase.firestore().collection('doacoes').add(nova);
       nova.id = docRef.id;
       setDoacoes((prev) => [nova, ...prev]);
+      return docRef.id;
     } catch (error) {
       console.error('Erro ao salvar doação no Firestore:', error);
       Alert.alert("Erro", "Não foi possível salvar a doação. Verifique sua conexão e tente novamente.");
@@ -88,7 +90,7 @@ export function DoacoesProvider({ children }) {
   };
 
   return (
-    <DoacoesContext.Provider value={{ doacoes, adicionarDoacao, atualizarStatus }}>
+    <DoacoesContext.Provider value={{ doacoes, adicionarDoacao, atualizarStatus, carregarDoacoes }}>
       {children}
     </DoacoesContext.Provider>
   );
