@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, Alert, ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -169,13 +169,6 @@ export default function Perfil() {
               Histórico de solicitações feitas
             </Text>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={[styles.recarregarBtn, { backgroundColor: theme.primary }]}
-            onPress={recarregarPedidos}
-          >
-            <Text style={styles.recarregarBtnText}>Recarregar</Text>
-          </TouchableOpacity>
         </View>
 
         {meusPedidos.length === 0 ? (
@@ -202,11 +195,11 @@ export default function Perfil() {
                     <Text style={[styles.statusText, { color: st.cor }]}>{st.label}</Text>
                   </View>
                 </View>
-                {p.entrega ? (
-                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Entrega: {p.entrega}</Text>
+                {p.solicitanteMetodo ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Entrega: {p.solicitanteMetodo}</Text>
                 ) : null}
-                {p.endereco ? (
-                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Local: {p.endereco}</Text>
+                {p.solicitanteLocal ? (
+                  <Text style={[styles.pedidoInfo, { color: theme.text }]}>Local: {p.solicitanteLocal}</Text>
                 ) : null}
                 <Text style={[styles.pedidoData, { color: theme.muted }]}>
                   Solicitado em: {new Date(p.solicitadoEm).toLocaleDateString("pt-BR")}
@@ -375,18 +368,6 @@ const styles = StyleSheet.create({
   pedidosSub: {
     fontSize: 13,
     marginTop: 2,
-  },
-
-  recarregarBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-
-  recarregarBtnText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "800",
   },
 
   emptyBox: {
