@@ -18,7 +18,7 @@ export default function PedirDoacao({ navigation }) {
   const { modoNoturno, theme } = useContext(TemaContext);
   const { user } = useContext(AuthContext);
 
-  const disponiveis = doacoes.filter((d) => d.status === "disponivel");
+  const disponiveis = doacoes.filter((d) => d.status === "disponivel" && d.categoria !== "Pagamento por PIX");
 
   const [deliveryDates, setDeliveryDates] = useState({});
   const [showCalendars, setShowCalendars] = useState({});

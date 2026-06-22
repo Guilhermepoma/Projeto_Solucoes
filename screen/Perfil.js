@@ -14,18 +14,15 @@ export default function Perfil() {
   const [email, setEmail] = useState("");
   const [editandoEmail, setEditandoEmail] = useState(false);
   const { modoNoturno, setModoNoturno, theme } = useContext(TemaContext);
-  const { doacoes } = useContext(DoacoesContext);
+  const { doacoes, carregarDoacoes } = useContext(DoacoesContext);
+
+  const meusPedidos = doacoes.filter((d) => d.solicitanteId === user?.uid);
 
   useEffect(() => {
-    if (user) setEmail(user.email);
+    if (user) {
+      setEmail(user.email);
+    }
   }, [user]);
-
-  const meusPedidos = useMemo(() =>
-    doacoes
-      .filter((d) => d.solicitanteId === user?.uid)
-      .sort((a, b) => (b.solicitadoEm || "").localeCompare(a.solicitadoEm || "")),
-    [doacoes, user]
-  );
 
   const statusPedido = (status) => {
     const config = {
@@ -65,6 +62,8 @@ export default function Perfil() {
     }
   };
 
+  const recarregarPedidos = () => carregarDoacoes();
+
   const borderColor = modoNoturno ? theme.border : "#111827";
 
   return (
@@ -77,7 +76,7 @@ export default function Perfil() {
           ]}
         >
           <TouchableOpacity activeOpacity={0.85} style={styles.avatar}>
-            <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase() || "U"}</Text>
+            <Text style={styles.headerAvatarText}>{user?.email?.charAt(0).toUpperCase() || "U"}</Text>
           </TouchableOpacity>
 
           <Text style={[styles.name, { color: theme.title }]}>Meu Perfil</Text>
@@ -225,6 +224,12 @@ export default function Perfil() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  
+  headerAvatarText: {
+    color: "#FFFFFF",
+    fontSize: 45,
+    fontWeight: "800",
   },
 
   content: {

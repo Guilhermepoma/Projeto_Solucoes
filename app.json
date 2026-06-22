@@ -31,6 +31,8 @@
         "projectId": "ee236f7d-391c-4d96-a6de-09c015dbd45c"
       }
     },
-    "owner": "guilhermepomacercena"
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
