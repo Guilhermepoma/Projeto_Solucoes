@@ -113,16 +113,18 @@ export default function FazerDoacao({ navigation }) {
     setEnviando(true);
 
     let base64 = null;
+    let mimeType = null;
     if (isPix && comprovanteUri) {
       try {
         base64 = await lerBase64(comprovanteUri);
+        mimeType = comprovanteUri.endsWith(".png") ? "image/png" : "image/jpeg";
       } catch (error) {
         console.error("Erro ao ler comprovante:", error);
       }
     }
 
     const dados = isPix
-      ? { nome, contato, quantidade, categoria, entrega: "PIX", comprovanteBase64: base64 }
+      ? { nome, contato, quantidade, categoria, entrega: "PIX", item: "Doação via PIX", comprovanteBase64: base64, comprovanteMime: mimeType }
       : {
           nome,
           contato,

@@ -161,7 +161,7 @@ export default function Adm({ navigation }) {
           <View style={[styles.statusDot, { backgroundColor: isDoacao ? theme.primary : theme.success }]} />
           <View style={styles.cardTitleWrap}>
             <Text style={[styles.cardKicker, { color: theme.muted }]}>{etiqueta}</Text>
-            <Text style={[styles.cardTitle, { color: theme.title }]}>{d.item}</Text>
+            <Text style={[styles.cardTitle, { color: theme.title }]}>{d.item || (d.categoria === "Pagamento por PIX" ? `Doação via PIX - R$ ${d.quantidade}` : "Doação")}</Text>
           </View>
         </View>
 
@@ -184,11 +184,6 @@ export default function Adm({ navigation }) {
               <Text style={[styles.metaText, { color: theme.text }]}>Entrega: {d.entrega || "A combinar"}</Text>
               {!!d.endereco && <Text style={[styles.metaText, { color: theme.text }]}>Local: {d.endereco}</Text>}
               {!!d.observacoes && <Text style={[styles.metaText, { color: theme.text }]}>Obs: {d.observacoes}</Text>}
-              {!!d.comprovanteBase64 && (
-                <TouchableOpacity onPress={() => setModalComprovante(d.comprovanteBase64)} style={styles.comprovanteLink}>
-                  <Text style={[styles.comprovanteLinkText, { color: theme.primary }]}>Ver comprovante</Text>
-                </TouchableOpacity>
-              )}
             </>
           ) : (
             <>
@@ -199,6 +194,18 @@ export default function Adm({ navigation }) {
             </>
           )}
         </View>
+
+        {!!d.comprovanteBase64 && (
+          <View style={styles.comprovantePreview}>
+            <TouchableOpacity onPress={() => setModalComprovante({ base64: d.comprovanteBase64, mime: d.comprovanteMime || "image/jpeg" })}>
+              <Image
+                source={{ uri: `data:${d.comprovanteMime || "image/jpeg"};base64,${d.comprovanteBase64}` }}
+                style={styles.comprovanteImg}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.row}>
           <TouchableOpacity
@@ -227,7 +234,7 @@ export default function Adm({ navigation }) {
       <View key={d.id} style={[styles.card, { backgroundColor: theme.card, borderColor }]}>
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleWrap}>
-            <Text style={[styles.cardTitle, { color: theme.title }]}>{d.item}</Text>
+            <Text style={[styles.cardTitle, { color: theme.title }]}>{d.item || (d.categoria === "Pagamento por PIX" ? `Doação via PIX - R$ ${d.quantidade}` : "Doação")}</Text>
             <Text style={[styles.cardKicker, { color: theme.muted }]}>
               {d.categoria || "Doação"} • {d.quantidade}
             </Text>
@@ -260,12 +267,19 @@ export default function Adm({ navigation }) {
           {!!d.motivoRecusa && (
             <Text style={[styles.metaText, { color: theme.danger }]}>Motivo recusa: {d.motivoRecusa}</Text>
           )}
-          {!!d.comprovanteBase64 && (
-            <TouchableOpacity onPress={() => setModalComprovante(d.comprovanteBase64)} style={styles.comprovanteLink}>
-              <Text style={[styles.comprovanteLinkText, { color: theme.primary }]}>Ver comprovante</Text>
-            </TouchableOpacity>
-          )}
         </View>
+
+        {!!d.comprovanteBase64 && (
+          <View style={styles.comprovantePreview}>
+            <TouchableOpacity onPress={() => setModalComprovante({ base64: d.comprovanteBase64, mime: d.comprovanteMime || "image/jpeg" })}>
+              <Image
+                source={{ uri: `data:${d.comprovanteMime || "image/jpeg"};base64,${d.comprovanteBase64}` }}
+                style={styles.comprovanteImg}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -525,7 +539,7 @@ export default function Adm({ navigation }) {
             <Text style={[styles.modalTitle, { color: theme.title }]}>Comprovante</Text>
             {modalComprovante && (
               <Image
-                source={{ uri: `data:image/jpeg;base64,${modalComprovante}` }}
+                source={{ uri: `data:${modalComprovante.mime};base64,${modalComprovante.base64}` }}
                 style={styles.comprovanteImagem}
                 resizeMode="contain"
               />
@@ -639,6 +653,13 @@ const styles = StyleSheet.create({
 
   metaList: { marginBottom: 10 },
   metaText: { fontSize: 14, lineHeight: 21 },
+  comprovantePreview: { marginBottom: 12 },
+  comprovanteImg: {
+    width: "100%",
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: "#00000010",
+  },
   comprovanteLink: { marginTop: 8 },
   comprovanteLinkText: { fontSize: 14, fontWeight: "800" },
   comprovanteImagem: {

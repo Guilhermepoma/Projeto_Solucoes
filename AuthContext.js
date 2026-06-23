@@ -9,19 +9,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-      setUser(user);
-      if (user) {
-    
-        const doc = await firebase.firestore().collection('usuarios').doc(user.uid).get();
+    const unsubscribe = firebase.auth().onAuthStateChanged(async (authUser) => {
+      if (authUser) {
+        const doc = await firebase.firestore().collection('usuarios').doc(authUser.uid).get();
         setIsAdmin(doc.exists && doc.data().isAdmin === true);
+        setUser(authUser);
       } else {
+        setUser(null);
         setIsAdmin(false);
       }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = firebase.firestore().collection('usuarios').doc(user.uid)
+      .onSnapshot((doc) => {
+        setIsAdmin(doc.exists && doc.data().isAdmin === true);
+      });
+    return () => unsub();
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, isAdmin, loading }}>

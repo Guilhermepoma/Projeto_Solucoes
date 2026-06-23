@@ -4,20 +4,26 @@
     "slug": "projeto_mari_cest-Basica",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.jpg",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-icon.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.guilhermepomacercena.projeto_mari_cestBasica",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Precisamos acessar sua câmera para anexar comprovante PIX",
+        "NSPhotoLibraryUsageDescription": "Precisamos acessar sua galeria para anexar comprovante PIX",
+        "NSLocationWhenInUseUsageDescription": "Precisamos da sua localização para sugerir endereço de entrega"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.jpg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -32,7 +38,14 @@
       }
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-image-picker",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Precisamos da sua localização para sugerir endereço de entrega"
+        }
+      ]
     ]
   }
 }
